@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CRBS Login</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="auth-page">
+  <header class="auth-topbar">
+    <a class="brand" href="login.html">
+      <img src="mmu-logo.webp" alt="MMU Multimedia University" />
+      <span>Campus Resource<br />Booking System</span>
+    </a>
+    <nav>
+      <a class="active" href="login.html">Login</a>
+      <a href="register.html">Register</a>
+    </nav>
+  </header>
+
+  <main class="auth-layout">
+    <form class="auth-card" data-form="login">
+      <img class="auth-logo" src="mmu-logo.webp" alt="MMU Multimedia University" />
+      <p class="eyebrow">Campus Resource Booking System</p>
+      <h1>Welcome Back</h1>
+      <p>Login to manage campus resource bookings.</p>
+
+      <label for="login-email">Email Address</label>
+      <input id="login-email" name="email" type="email" placeholder="student@mmu.edu.my" required />
+
+      <label for="login-password">Password</label>
+      <input id="login-password" name="password" type="password" placeholder="Enter password" required minlength="6" />
+
+      <button class="primary-btn" type="submit">Login</button>
+      <p class="form-message" aria-live="polite"></p>
+      <p class="auth-link">Do not have an account? <a href="register.html">Create account</a></p>
+    </form>
+
+    <section class="auth-copy">
+      <p class="eyebrow">Centralised booking platform</p>
+      <h2>Book rooms, labs, and equipment from one portal.</h2>
+      <p>Students, staff, and admins see different dashboard actions after logging in.</p>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

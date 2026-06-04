@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CRBS Dashboard</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <button class="brand" type="button" data-screen="dashboard" aria-label="Open dashboard">
+        <img src="mmu-logo.webp" alt="MMU Multimedia University" />
+        <span>Campus Resource<br />Booking System</span>
+      </button>
+
+      <button class="logout-link" type="button" id="logoutBtn">Logout</button>
+    </header>
+
+    <div class="workspace">
+      <aside class="sidebar" aria-label="Screen navigation">
+        <div class="profile-box">
+          <div class="avatar" id="avatarInitials">ST</div>
+          <div>
+            <strong id="roleTitle">Student Dashboard</strong>
+            <span id="roleSubtitle">Booking access</span>
+          </div>
+        </div>
+
+        <p class="menu-label">Main Screens</p>
+        <button class="side-link active" type="button" data-screen="dashboard"><span>01</span> Dashboard</button>
+        <button class="side-link role-student role-staff" type="button" data-screen="search-resources"><span>02</span> Search Resources</button>
+        <button class="side-link role-student role-staff" type="button" data-screen="create-booking"><span>03</span> Create Booking</button>
+        <button class="side-link role-student role-staff" type="button" data-screen="my-bookings"><span>04</span> My Bookings</button>
+
+        <p class="menu-label">Manager/Admin</p>
+        <button class="side-link role-admin" type="button" data-screen="resource-management"><span>05</span> Resource Management</button>
+        <button class="side-link role-admin role-staff" type="button" data-screen="pending-approvals"><span>06</span> Pending Approvals</button>
+        <button class="side-link role-admin role-staff" type="button" data-screen="reports"><span>07</span> Reports & Analytics</button>
+        <button class="side-link role-admin" type="button" data-screen="policy"><span>08</span> Policy Config</button>
+      </aside>
+
+      <main class="main-area">
+        <section id="dashboard" class="screen active">
+          <div class="screen-header">
+            <div>
+              <p class="eyebrow" id="dashboardEyebrow">Student view</p>
+              <h1 id="dashboardHeading">Dashboard</h1>
+              <p id="dashboardDescription">Quick overview of available resources and upcoming bookings.</p>
+            </div>
+            <button class="primary-btn compact role-student role-staff" type="button" data-screen="search-resources">New Booking</button>
+          </div>
+
+          <div class="stat-grid" id="statGrid"></div>
+
+          <div class="dash-grid">
+            <section class="panel" id="primaryPanel"></section>
+            <section class="panel" id="secondaryPanel"></section>
+          </div>
+        </section>
+
+        <section id="search-resources" class="screen">
+          <div class="screen-header">
+            <div>
+              <p class="eyebrow">Booking screen</p>
+              <h1>Search Resources</h1>
+              <p>Filter rooms, labs, projectors, and AV equipment by date, time, capacity, and location.</p>
+            </div>
+          </div>
+          <div class="search-layout">
+            <form class="panel filter-panel" data-form="search">
+              <h2>Filters</h2>
+              <label>Resource type<select required><option value="">Choose</option><option>Meeting Room</option><option>Computer Lab</option><option>Projector</option><option>AV Equipment</option></select></label>
+              <label>Location<input placeholder="FCI Building" /></label>
+              <label>Date<input type="date" required /></label>
+              <label>Minimum capacity<input type="number" min="1" placeholder="30" /></label>
+              <button class="primary-btn" type="submit">Apply Filters</button>
+              <p class="form-message"></p>
+            </form>
+            <section class="results-list">
+              <article class="resource-card"><div><h3>Computer Lab 1</h3><p>FCI Building - Capacity 30 - Available at 2:00 PM</p></div><button type="button" data-screen="create-booking">Book</button></article>
+              <article class="resource-card"><div><h3>Meeting Room A</h3><p>Library Block - Capacity 12 - Available at 10:00 AM</p></div><button type="button" data-screen="create-booking">Book</button></article>
+              <article class="resource-card"><div><h3>Projector Set B</h3><p>Equipment Desk - Portable - Approval required</p></div><button type="button" data-screen="create-booking">Book</button></article>
+            </section>
+          </div>
+        </section>
+
+        <section id="create-booking" class="screen">
+          <div class="screen-header">
+            <div>
+              <p class="eyebrow">Booking screen</p>
+              <h1>Create Booking</h1>
+              <p>Confirm selected resource, time slot, purpose, attendees, and policy compliance.</p>
+            </div>
+          </div>
+          <div class="dash-grid">
+            <form class="panel" data-form="create-booking">
+              <h2>Booking Details</h2>
+              <div class="form-grid">
+                <label>Resource<input value="Computer Lab 1" required /></label>
+                <label>Date<input type="date" required /></label>
+                <label>Start time<input type="time" required /></label>
+                <label>End time<input type="time" required /></label>
+                <label>Attendees<input type="number" min="1" max="250" placeholder="28" required /></label>
+                <label>Booking type<select><option>Single</option><option>Recurring</option></select></label>
+              </div>
+              <label>Purpose<textarea placeholder="Workshop session" required></textarea></label>
+              <button class="primary-btn" type="submit">Confirm Booking</button>
+              <p class="form-message"></p>
+            </form>
+            <section class="panel">
+              <h2>Policy Summary</h2>
+              <p><strong>Maximum duration:</strong> 4 hours</p>
+              <p><strong>Minimum notice:</strong> 24 hours</p>
+              <p><strong>Capacity:</strong> Within limit</p>
+              <p><strong>Approval:</strong> Not required for this resource</p>
+            </section>
+          </div>
+        </section>
+
+        <section id="my-bookings" class="screen">
+          <div class="screen-header">
+            <div>
+              <p class="eyebrow">Booking screen</p>
+              <h1>My Bookings</h1>
+              <p>View upcoming, pending, past, cancelled, and rejected bookings.</p>
+            </div>
+          </div>
+          <div class="tabs"><button class="active">Upcoming</button><button>Pending Approval</button><button>Past</button><button>Cancelled</button></div>
+          <section class="panel">
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Resource</th><th>Date</th><th>Time</th><th>Status</th><th>Action</th></tr></thead>
+                <tbody>
+                  <tr><td>Meeting Room A</td><td>05 Jun 2026</td><td>10:00 AM</td><td><span class="badge ok">Confirmed</span></td><td><button class="ghost-btn">Modify</button></td></tr>
+                  <tr><td>Computer Lab 1</td><td>06 Jun 2026</td><td>2:00 PM</td><td><span class="badge wait">Pending</span></td><td><button class="ghost-btn">View</button></td></tr>
+                  <tr><td>Projector Set B</td><td>07 Jun 2026</td><td>11:30 AM</td><td><span class="badge ok">Confirmed</span></td><td><button class="ghost-btn">Cancel</button></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </section>
+
+        <section id="resource-management" class="screen">
+          <div class="screen-header">
+            <div>
+              <p class="eyebrow">Admin screen</p>
+              <h1>Resource Management</h1>
+              <p>Add, edit, deactivate, and schedule maintenance for campus resources.</p>
+            </div>
+            <button class="primary-btn compact" id="addResourceBtn" type="button">Add Resource</button>
+          </div>
+          <section class="panel">
+            <h2>Resources</h2>
+            <div class="table-wrap">
+              <table id="resourcesTable">
+                <thead><tr><th>Name</th><th>Type</th><th>Location</th><th>Capacity</th><th>Status</th><th>Actions</th></tr></thead>
+                <tbody id="resourcesBody">
+                  <tr data-resource-id="1" class="resource-row">
+                    <td><strong>Meeting Room A</strong></td>
+                    <td>Room</td>
+                    <td>Library Block</td>
+                    <td>12</td>
+                    <td><span class="badge ok">Available</span></td>
+                    <td><button class="action-btn" type="button">Edit</button><button class="maintenance-btn" type="button">Maintenance</button></td>
+                  </tr>
+                  <tr data-resource-id="2" class="resource-row">
+                    <td><strong>Computer Lab 1</strong></td>
+                    <td>Lab</td>
+                    <td>FCI Building</td>
+                    <td>30</td>
+                    <td><span class="badge ok">Available</span></td>
+                    <td><button class="action-btn" type="button">Edit</button><button class="maintenance-btn" type="button">Maintenance</button></td>
+                  </tr>
+                  <tr data-resource-id="3" class="resource-row">
+                    <td><strong>AV Kit 2</strong></td>
+                    <td>Equipment</td>
+                    <td>Equipment Desk</td>
+                    <td>-</td>
+                    <td><span class="badge warn">Maintenance</span></td>
+                    <td><button class="action-btn" type="button">Edit</button><button class="maintenance-btn" type="button">Maintenance</button></td>
+                  </tr>
+                  <tr data-resource-id="4" class="resource-row">
+                    <td><strong>Projector Set B</strong></td>
+                    <td>Equipment</td>
+                    <td>Main Auditorium</td>
+                    <td>-</td>
+                    <td><span class="badge ok">Available</span></td>
+                    <td><button class="action-btn" type="button">Edit</button><button class="maintenance-btn" type="button">Maintenance</button></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </section>
+
+        <div id="resourcePanel" class="side-panel">
+          <div class="side-panel-header">
+            <h2 id="panelTitle">Add Resource</h2>
+            <button class="close-btn" type="button" aria-label="Close">&times;</button>
+          </div>
+          <form class="panel" data-form="resource" id="resourceForm">
+            <label>Resource name<input id="resourceName" placeholder="e.g., Meeting Room A" required /></label>
+            <label>Type<select id="resourceType" required><option value="">Select type</option><option>Room</option><option>Lab</option><option>Equipment</option><option>Other</option></select></label>
+            <label>Location<input id="resourceLocation" placeholder="e.g., FCI Building" required /></label>
+            <label>Capacity<input id="resourceCapacity" type="number" placeholder="Leave blank for equipment" /></label>
+            <label>Status<select id="resourceStatus" required><option>Available</option><option>Maintenance</option><option>Inactive</option></select></label>
+            <button class="primary-btn" type="submit">Save Resource</button>
+            <p class="form-message"></p>
+          </form>
+        </div>
+
+        <div id="maintenanceModal" class="modal">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h2>Schedule Maintenance</h2>
+              <button class="close-btn" type="button" aria-label="Close">&times;</button>
+            </div>
+            <form id="maintenanceForm">
+              <label>Resource<input id="maintenanceResource" disabled /></label>
+              <label>Start date<input id="maintenanceStart" type="date" required /></label>
+              <label>End date<input id="maintenanceEnd" type="date" required /></label>
+              <label>Notes<textarea id="maintenanceNotes" placeholder="Maintenance reason (optional)"></textarea></label>
+              <div class="modal-actions">
+                <button class="primary-btn" type="submit">Schedule</button>
+                <button class="ghost-btn" type="button" data-action="cancel">Cancel</button>
+              </div>
+              <p class="form-message"></p>
+            </form>
+          </div>
+        </div>
+
+        <section id="pending-approvals" class="screen">
+          <div class="screen-header">
+            <div>
+              <p class="eyebrow">Staff/Admin screen</p>
+              <h1>Pending Approvals</h1>
+              <p>Review specialised equipment and resource requests before confirmation.</p>
+            </div>
+          </div>
+          <div class="approval-list">
+            <article class="approval-card"><div><h3>Projector request - Aisyah</h3><p>Projector Set B, 07 Jun 2026, 11:30 AM, seminar presentation.</p></div><div><button class="approve-btn">Approve</button><button class="reject-btn">Reject</button></div></article>
+            <article class="approval-card"><div><h3>AV Kit request - Daniel</h3><p>AV Kit 2, 09 Jun 2026, 9:00 AM, event setup.</p></div><div><button class="approve-btn">Approve</button><button class="reject-btn">Reject</button></div></article>
+            <article class="approval-card"><div><h3>Lab extension - Faculty Staff</h3><p>Computer Lab 1, extended workshop slot, policy review required.</p></div><div><button class="approve-btn">Approve</button><button class="reject-btn">Reject</button></div></article>
+          </div>
+        </section>
+
+        <section id="reports" class="screen">
+          <div class="screen-header">
+            <div>
+              <p class="eyebrow">Admin & Staff screen</p>
+              <h1>Reports & Analytics</h1>
+              <p>Generate utilisation heatmaps, booking trends, and exportable summaries.</p>
+            </div>
+          </div>
+          <div class="reports-layout">
+            <form class="panel" data-form="reports" id="reportsForm">
+              <h2>Generate Report</h2>
+              <label>Report type<select id="reportType" required><option value="">Select report</option><option value="heatmap">Utilisation Heatmap</option><option value="trends">Booking Trends</option><option value="summary" class="role-admin">No-show Summary</option></select></label>
+              <label>Start date<input id="reportStart" type="date" required /></label>
+              <label>End date<input id="reportEnd" type="date" required /></label>
+              <label>Resource type<select id="reportResourceType"><option value="">All Resources</option><option>Rooms</option><option>Labs</option><option>Equipment</option></select></label>
+              <label class="role-admin">Department<select id="reportDepartment"><option value="">All Departments</option><option>Engineering</option><option>Science</option><option>Business</option></select></label>
+              <button class="primary-btn" type="submit">Generate Report</button>
+              <p class="form-message"></p>
+            </form>
+            <section id="reportContainer" class="panel chart-panel" style="display: none;">
+              <div class="panel-heading">
+                <h2 id="reportTitle">Report</h2>
+                <div class="export-buttons">
+                  <button class="ghost-btn" id="exportPdfBtn" type="button">PDF</button>
+                  <button class="ghost-btn" id="exportCsvBtn" type="button">CSV</button>
+                </div>
+              </div>
+              <div id="reportContent"></div>
+            </section>
+          </div>
+        </section>
+
+        <section id="policy" class="screen">
+          <div class="screen-header">
+            <div>
+              <p class="eyebrow">Admin screen</p>
+              <h1>Booking Policy Configuration</h1>
+              <p>Admin-only screen for maintaining booking rules and audit history.</p>
+            </div>
+          </div>
+          <div class="dash-grid">
+            <form class="panel" data-form="policy">
+              <h2>Policy Settings</h2>
+              <label>Maximum advance booking days<input type="number" value="30" required /></label>
+              <label>Minimum notice period<input value="24 hours" required /></label>
+              <label>Maximum duration<input value="4 hours" required /></label>
+              <label>Cancellation deadline<input value="12 hours before booking" required /></label>
+              <button class="primary-btn" type="submit">Save Policy</button>
+              <p class="form-message"></p>
+            </form>
+            <section class="panel">
+              <h2>Change Log</h2>
+              <p><strong>03 Jun 2026:</strong> Admin updated maximum duration.</p>
+              <p><strong>28 May 2026:</strong> Notice period changed to 24 hours.</p>
+              <p><strong>15 May 2026:</strong> Policy reviewed and approved.</p>
+            </section>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

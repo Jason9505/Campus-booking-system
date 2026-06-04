@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CRBS Registration</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="auth-page">
+  <header class="auth-topbar">
+    <a class="brand" href="login.html">
+      <img src="mmu-logo.webp" alt="MMU Multimedia University" />
+      <span>Campus Resource<br />Booking System</span>
+    </a>
+    <nav>
+      <a href="login.html">Login</a>
+      <a class="active" href="register.html">Register</a>
+    </nav>
+  </header>
+
+  <main class="auth-layout">
+    <form class="auth-card" data-form="register">
+      <img class="auth-logo" src="mmu-logo.webp" alt="MMU Multimedia University" />
+      <p class="eyebrow">New account</p>
+      <h1>Create Account</h1>
+      <p>Register using your MMU institutional details.</p>
+
+      <div class="form-grid">
+        <div>
+          <label for="full-name">Full Name</label>
+          <input id="full-name" name="fullName" placeholder="Enter full name" required />
+        </div>
+        <div>
+          <label for="user-id">ID</label>
+          <input id="user-id" name="userId" placeholder="Student/Staff ID" required />
+        </div>
+      </div>
+
+      <label for="department">Department</label>
+      <input id="department" name="department" placeholder="Faculty / Department" required />
+
+      <label for="register-email">Email Address</label>
+      <input id="register-email" name="email" type="email" placeholder="name@mmu.edu.my" required />
+
+      <label for="register-role">Register As</label>
+      <select id="register-role" name="role" required>
+        <option value="student">Student</option>
+        <option value="staff">Staff</option>
+        <option value="admin">Admin</option>
+      </select>
+
+      <label for="register-password">Password</label>
+      <input id="register-password" name="password" type="password" placeholder="Create password" required minlength="8" />
+
+      <div class="strength" data-strength="empty" aria-live="polite">
+        <span></span><span></span><span></span>
+        <small>Password strength</small>
+      </div>
+
+      <button class="primary-btn" type="submit">Register</button>
+      <p class="form-message" aria-live="polite"></p>
+      <p class="auth-link">Already have an account? <a href="login.html">Login</a></p>
+    </form>
+
+    <section class="auth-copy">
+      <p class="eyebrow">Role-based access</p>
+      <h2>Your role controls what appears after login.</h2>
+      <p>Student users see booking screens, staff users see booking plus approval-related requests, and admins see management, reports, and policy screens.</p>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
