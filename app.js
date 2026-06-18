@@ -1,67 +1,76 @@
-const authManager = {
-  getUsers() {
-    const users = localStorage.getItem("crbsUsers");
-    return users ? JSON.parse(users) : [];
-  },
+const ROLE_MAP = {
+  Student: 'student',
+  FacultyStaff: 'staff',
+  ResourceManager: 'staff',
+  Admin: 'admin',
+};
 
-  saveUsers(users) {
-    localStorage.setItem("crbsUsers", JSON.stringify(users));
-  },
-
-  userExists(email) {
-    return this.getUsers().some((u) => u.email.toLowerCase() === email.toLowerCase());
-  },
-
-  registerUser(email, password, fullName, userId, department, role) {
-    if (this.userExists(email)) {
-      return { success: false, message: "Email already registered. Please login or use a different email." };
-    }
-
-    const users = this.getUsers();
-    users.push({
-      email: email.toLowerCase(),
-      password,
-      fullName,
-      userId,
-      department,
-      role,
+const API = {
+  async request(method, path, body) {
+    const token = localStorage.getItem('crbsToken');
+    const res = await fetch(path, {
+      method,
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: body ? JSON.stringify(body) : undefined,
     });
-    this.saveUsers(users);
-    return { success: true, message: "Registration successful! Redirecting to login..." };
+    const json = await res.json();
+    if (!json.success) {
+      const err = new Error(json.message || 'Request failed');
+      err.data = json;
+      throw err;
+    }
+    return json.data;
+  },
+  get(path) { return this.request('GET', path); },
+  post(path, body) { return this.request('POST', path, body); },
+  put(path, body) { return this.request('PUT', path, body); },
+  del(path) { return this.request('DELETE', path); },
+};
+
+const authManager = {
+  async registerUser(email, password, fullName, campusId, department, role) {
+    const roleMap = { student: 'Student', staff: 'FacultyStaff', admin: 'Admin' };
+    const result = await API.post('/api/auth/register', {
+      name: fullName,
+      email,
+      password,
+      role: roleMap[role] || 'Student',
+      department,
+      campusId,
+    });
+    return { success: true, message: 'Registration successful! Redirecting to login...' };
   },
 
-  validateLogin(email, password) {
-    const users = this.getUsers();
-    const user = users.find((u) => u.email.toLowerCase() === email.toLowerCase());
-
-    if (!user) {
-      return { success: false, message: "Email not registered. Please create an account first." };
-    }
-
-    if (user.password !== password) {
-      return { success: false, message: "Incorrect password. Please try again." };
-    }
-
-    return { success: true, user };
-  },
-
-  loginUser(user) {
-    localStorage.setItem("crbsRole", user.role);
-    localStorage.setItem("crbsName", user.fullName);
-    localStorage.setItem("crbsEmail", user.email);
-    localStorage.setItem("crbsCurrentUser", JSON.stringify(user));
+  async loginUser(email, password) {
+    const result = await API.post('/api/auth/login', { email, password });
+    const mappedRole = ROLE_MAP[result.user.role] || 'student';
+    localStorage.setItem('crbsToken', result.token);
+    localStorage.setItem('crbsRole', mappedRole);
+    localStorage.setItem('crbsName', result.user.name);
+    localStorage.setItem('crbsEmail', result.user.email);
+    localStorage.setItem('crbsCurrentUser', JSON.stringify(result.user));
+    return result;
   },
 
   getCurrentUser() {
-    const user = localStorage.getItem("crbsCurrentUser");
+    const user = localStorage.getItem('crbsCurrentUser');
     return user ? JSON.parse(user) : null;
   },
 
-  logout() {
-    localStorage.removeItem("crbsRole");
-    localStorage.removeItem("crbsName");
-    localStorage.removeItem("crbsEmail");
-    localStorage.removeItem("crbsCurrentUser");
+  async logout() {
+    try {
+      await API.post('/api/auth/logout');
+    } catch (_) {
+      // Proceed with local cleanup even if API call fails
+    }
+    localStorage.removeItem('crbsToken');
+    localStorage.removeItem('crbsRole');
+    localStorage.removeItem('crbsName');
+    localStorage.removeItem('crbsEmail');
+    localStorage.removeItem('crbsCurrentUser');
   },
 };
 
@@ -174,7 +183,7 @@ const bindForms = () => {
     if (form.dataset.bound === "true") return;
     form.dataset.bound = "true";
 
-    form.addEventListener("submit", (event) => {
+    form.addEventListener("submit", async (event) => {
       event.preventDefault();
 
       if (!form.checkValidity()) {
@@ -185,21 +194,22 @@ const bindForms = () => {
 
       if (form.dataset.form === "register") {
         const fullName = document.querySelector("#full-name").value.trim();
-        const userId = document.querySelector("#user-id").value.trim();
+        const campusId = document.querySelector("#user-id").value.trim() || null;
         const department = document.querySelector("#department").value.trim();
         const email = document.querySelector("#register-email").value.trim();
         const role = document.querySelector("#register-role").value;
         const password = document.querySelector("#register-password").value;
 
-        const result = authManager.registerUser(email, password, fullName, userId, department, role);
-        setMessage(form, result.message, !result.success);
-
-        if (result.success) {
+        try {
+          const result = await authManager.registerUser(email, password, fullName, campusId, department, role);
+          setMessage(form, result.message, !result.success);
           form.reset();
           updatePasswordStrength();
           window.setTimeout(() => {
             window.location.href = "login.html";
           }, 650);
+        } catch (err) {
+          setMessage(form, err.message || "Registration failed. Please try again.", true);
         }
         return;
       }
@@ -208,15 +218,14 @@ const bindForms = () => {
         const email = document.querySelector("#login-email").value.trim();
         const password = document.querySelector("#login-password").value;
 
-        const result = authManager.validateLogin(email, password);
-        setMessage(form, result.message, !result.success);
-
-        if (result.success) {
-          authManager.loginUser(result.user);
+        try {
+          await authManager.loginUser(email, password);
           setMessage(form, "Login successful. Opening dashboard...");
           window.setTimeout(() => {
             window.location.href = "dashboard.html";
           }, 550);
+        } catch (err) {
+          setMessage(form, err.message || "Login failed. Please try again.", true);
         }
         return;
       }
@@ -308,8 +317,8 @@ const bindDashboardActions = () => {
     button.addEventListener("click", () => showScreen(button.dataset.screen));
   });
 
-  document.getElementById("logoutBtn")?.addEventListener("click", () => {
-    authManager.logout();
+  document.getElementById("logoutBtn")?.addEventListener("click", async () => {
+    await authManager.logout();
     window.location.href = "login.html";
   });
 
