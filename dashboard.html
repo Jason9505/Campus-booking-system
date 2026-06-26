@@ -70,17 +70,26 @@
           <div class="search-layout">
             <form class="panel filter-panel" data-form="search">
               <h2>Filters</h2>
-              <label>Resource type<select required><option value="">Choose</option><option>Meeting Room</option><option>Computer Lab</option><option>Projector</option><option>AV Equipment</option></select></label>
-              <label>Location<input placeholder="FCI Building" /></label>
-              <label>Date<input type="date" required /></label>
-              <label>Minimum capacity<input type="number" min="1" placeholder="30" /></label>
+              <label>Resource type
+                <select id="filterType">
+                  <option value="">All Resource Types</option>
+                </select>
+              </label>
+              <label>Location<input id="filterLocation" placeholder="FCI Building" /></label>
+              <label>
+                Date
+                <input id="bookingDate" type="date" required />
+              </label>
+              <label>
+                Time
+                <input id="bookingTime" type="time">
+                </label>
+              <input id="filterCapacity" type="number" min="1" placeholder="30" /></label>
               <button class="primary-btn" type="submit">Apply Filters</button>
               <p class="form-message"></p>
             </form>
-            <section class="results-list">
-              <article class="resource-card"><div><h3>Computer Lab 1</h3><p>FCI Building - Capacity 30 - Available at 2:00 PM</p></div><button type="button" data-screen="create-booking">Book</button></article>
-              <article class="resource-card"><div><h3>Meeting Room A</h3><p>Library Block - Capacity 12 - Available at 10:00 AM</p></div><button type="button" data-screen="create-booking">Book</button></article>
-              <article class="resource-card"><div><h3>Projector Set B</h3><p>Equipment Desk - Portable - Approval required</p></div><button type="button" data-screen="create-booking">Book</button></article>
+            <section class="results-list" id="resourceResults">
+              
             </section>
           </div>
         </section>
@@ -97,24 +106,60 @@
             <form class="panel" data-form="create-booking">
               <h2>Booking Details</h2>
               <div class="form-grid">
-                <label>Resource<input value="Computer Lab 1" required /></label>
-                <label>Date<input type="date" required /></label>
-                <label>Start time<input type="time" required /></label>
-                <label>End time<input type="time" required /></label>
+                <label>
+                  Resource
+                  <select id="resourceID" required>
+                    <option value="">Select Resource</option>
+                  </select>
+                </label>
+                <label>
+                  Date
+                  <input
+                    id="createBookingDate"
+                    type="date"
+                    required
+                  />
+                </label>
+                <label>
+                  Start time
+                  <input id="startTime" type="time" required />
+                </label>
+                <label>
+                  End time
+                  <input id="endTime" type="time" required />
+                </label>
                 <label>Attendees<input type="number" min="1" max="250" placeholder="28" required /></label>
                 <label>Booking type<select><option>Single</option><option>Recurring</option></select></label>
               </div>
               <label>Purpose<textarea placeholder="Workshop session" required></textarea></label>
               <button class="primary-btn" type="submit">Confirm Booking</button>
-              <p class="form-message"></p>
+              <p class="form-message" id="bookingMessage"></p>
             </form>
             <section class="panel">
+
               <h2>Policy Summary</h2>
-              <p><strong>Maximum duration:</strong> 4 hours</p>
-              <p><strong>Minimum notice:</strong> 24 hours</p>
-              <p><strong>Capacity:</strong> Within limit</p>
-              <p><strong>Approval:</strong> Not required for this resource</p>
-            </section>
+
+              <p>
+                  <strong>Maximum duration:</strong>
+                  <span id="policyMaximumDuration">-</span>
+              </p>
+
+              <p>
+                  <strong>Minimum notice:</strong>
+                  <span id="policyMinimumNotice">-</span>
+              </p>
+
+              <p>
+                  <strong>Maximum advance booking:</strong>
+                  <span id="policyAdvanceDays">-</span>
+              </p>
+
+              <p>
+                  <strong>Cancellation deadline:</strong>
+                  <span id="policyCancellationDeadline">-</span>
+              </p>
+
+          </section>
           </div>
         </section>
 
@@ -126,15 +171,17 @@
               <p>View upcoming, pending, past, cancelled, and rejected bookings.</p>
             </div>
           </div>
-          <div class="tabs"><button class="active">Upcoming</button><button>Pending Approval</button><button>Past</button><button>Cancelled</button></div>
+          <div class="tabs">
+            <button id="upcomingTab" class="active">Upcoming</button>
+            <button id="pendingTab">Pending Approval</button>
+            <button id="pastTab">Past</button>
+            <button id="cancelledTab">Cancelled</button>
+          </div>
           <section class="panel">
             <div class="table-wrap">
               <table>
                 <thead><tr><th>Resource</th><th>Date</th><th>Time</th><th>Status</th><th>Action</th></tr></thead>
-                <tbody>
-                  <tr><td>Meeting Room A</td><td>05 Jun 2026</td><td>10:00 AM</td><td><span class="badge ok">Confirmed</span></td><td><button class="ghost-btn">Modify</button></td></tr>
-                  <tr><td>Computer Lab 1</td><td>06 Jun 2026</td><td>2:00 PM</td><td><span class="badge wait">Pending</span></td><td><button class="ghost-btn">View</button></td></tr>
-                  <tr><td>Projector Set B</td><td>07 Jun 2026</td><td>11:30 AM</td><td><span class="badge ok">Confirmed</span></td><td><button class="ghost-btn">Cancel</button></td></tr>
+                <tbody id="bookingsBody">
                 </tbody>
               </table>
             </div>
@@ -153,42 +200,21 @@
           <section class="panel">
             <h2>Resources</h2>
             <div class="table-wrap">
-              <table id="resourcesTable">
-                <thead><tr><th>Name</th><th>Type</th><th>Location</th><th>Capacity</th><th>Status</th><th>Actions</th></tr></thead>
-                <tbody id="resourcesBody">
-                  <tr data-resource-id="1" class="resource-row">
-                    <td><strong>Meeting Room A</strong></td>
-                    <td>Room</td>
-                    <td>Library Block</td>
-                    <td>12</td>
-                    <td><span class="badge ok">Available</span></td>
-                    <td><button class="action-btn" type="button">Edit</button><button class="maintenance-btn" type="button">Maintenance</button></td>
-                  </tr>
-                  <tr data-resource-id="2" class="resource-row">
-                    <td><strong>Computer Lab 1</strong></td>
-                    <td>Lab</td>
-                    <td>FCI Building</td>
-                    <td>30</td>
-                    <td><span class="badge ok">Available</span></td>
-                    <td><button class="action-btn" type="button">Edit</button><button class="maintenance-btn" type="button">Maintenance</button></td>
-                  </tr>
-                  <tr data-resource-id="3" class="resource-row">
-                    <td><strong>AV Kit 2</strong></td>
-                    <td>Equipment</td>
-                    <td>Equipment Desk</td>
-                    <td>-</td>
-                    <td><span class="badge warn">Maintenance</span></td>
-                    <td><button class="action-btn" type="button">Edit</button><button class="maintenance-btn" type="button">Maintenance</button></td>
-                  </tr>
-                  <tr data-resource-id="4" class="resource-row">
-                    <td><strong>Projector Set B</strong></td>
-                    <td>Equipment</td>
-                    <td>Main Auditorium</td>
-                    <td>-</td>
-                    <td><span class="badge ok">Available</span></td>
-                    <td><button class="action-btn" type="button">Edit</button><button class="maintenance-btn" type="button">Maintenance</button></td>
-                  </tr>
-                </tbody>
+                <table id="resourcesTable">   
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Location</th>
+                      <th>Capacity</th>
+                      <th>Status</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+
+                  <tbody id="resourcesBody">
+                  </tbody>
+                </table>
               </table>
             </div>
           </section>
@@ -200,8 +226,20 @@
             <button class="close-btn" type="button" aria-label="Close">&times;</button>
           </div>
           <form class="panel" data-form="resource" id="resourceForm">
-            <label>Resource name<input id="resourceName" placeholder="e.g., Meeting Room A" required /></label>
-            <label>Type<select id="resourceType" required><option value="">Select type</option><option>Room</option><option>Lab</option><option>Equipment</option><option>Other</option></select></label>
+            <input
+              type="hidden"
+              id="editingResourceID"
+            />
+            <label>
+              Resource name
+              <input id="resourceName" placeholder="e.g., Meeting Room A" required />
+            </label>
+            <label>
+              Type
+              <select id="resourceType" required>
+                <option value="">Select type</option>
+              </select>
+            </label>
             <label>Location<input id="resourceLocation" placeholder="e.g., FCI Building" required /></label>
             <label>Capacity<input id="resourceCapacity" type="number" placeholder="Leave blank for equipment" /></label>
             <label>Status<select id="resourceStatus" required><option>Available</option><option>Maintenance</option><option>Inactive</option></select></label>
@@ -238,10 +276,7 @@
               <p>Review specialised equipment and resource requests before confirmation.</p>
             </div>
           </div>
-          <div class="approval-list">
-            <article class="approval-card"><div><h3>Projector request - Aisyah</h3><p>Projector Set B, 07 Jun 2026, 11:30 AM, seminar presentation.</p></div><div><button class="approve-btn">Approve</button><button class="reject-btn">Reject</button></div></article>
-            <article class="approval-card"><div><h3>AV Kit request - Daniel</h3><p>AV Kit 2, 09 Jun 2026, 9:00 AM, event setup.</p></div><div><button class="approve-btn">Approve</button><button class="reject-btn">Reject</button></div></article>
-            <article class="approval-card"><div><h3>Lab extension - Faculty Staff</h3><p>Computer Lab 1, extended workshop slot, policy review required.</p></div><div><button class="approve-btn">Approve</button><button class="reject-btn">Reject</button></div></article>
+          <div class="approval-list" id="approvalList">
           </div>
         </section>
 
@@ -259,7 +294,11 @@
               <label>Report type<select id="reportType" required><option value="">Select report</option><option value="heatmap">Utilisation Heatmap</option><option value="trends">Booking Trends</option><option value="summary" class="role-admin">No-show Summary</option></select></label>
               <label>Start date<input id="reportStart" type="date" required /></label>
               <label>End date<input id="reportEnd" type="date" required /></label>
-              <label>Resource type<select id="reportResourceType"><option value="">All Resources</option><option>Rooms</option><option>Labs</option><option>Equipment</option></select></label>
+              <label>Resource type
+                <select id="reportResourceType">
+                    <option value="">All Resources</option>
+                </select>
+              </label>
               <label class="role-admin">Department<select id="reportDepartment"><option value="">All Departments</option><option>Engineering</option><option>Science</option><option>Business</option></select></label>
               <button class="primary-btn" type="submit">Generate Report</button>
               <p class="form-message"></p>
@@ -288,18 +327,19 @@
           <div class="dash-grid">
             <form class="panel" data-form="policy">
               <h2>Policy Settings</h2>
-              <label>Maximum advance booking days<input type="number" value="30" required /></label>
-              <label>Minimum notice period<input value="24 hours" required /></label>
-              <label>Maximum duration<input value="4 hours" required /></label>
-              <label>Cancellation deadline<input value="12 hours before booking" required /></label>
+              <label>Maximum advance booking days<input id="maxAdvanceDays" type="number" required /></label>
+              <label>Minimum notice period<input id="minimumNotice" required /></label>
+              <label>Maximum duration<input id="maximumDuration" required /></label>
+              <label>Cancellation deadline<input id="cancellationDeadline" required /></label>
               <button class="primary-btn" type="submit">Save Policy</button>
               <p class="form-message"></p>
             </form>
             <section class="panel">
-              <h2>Change Log</h2>
-              <p><strong>03 Jun 2026:</strong> Admin updated maximum duration.</p>
-              <p><strong>28 May 2026:</strong> Notice period changed to 24 hours.</p>
-              <p><strong>15 May 2026:</strong> Policy reviewed and approved.</p>
+
+                <h2>Change Log</h2>
+
+                <div id="policyLog"></div>
+
             </section>
           </div>
         </section>
@@ -308,5 +348,7 @@
   </div>
 
   <script src="app.js"></script>
+  <script src="/node_modules/jspdf/dist/jspdf.umd.min.js"></script>
+  <script src="/vendor/chartjs/chart.umd.js"></script>
 </body>
 </html>

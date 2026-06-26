@@ -40,3 +40,14 @@ CREATE TABLE IF NOT EXISTS blacklisted_tokens (
   createdAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   INDEX idx_tokenHash (tokenHash)
 );
+
+CREATE TABLE resources (
+  resourceID INT PRIMARY KEY AUTO_INCREMENT,
+  name VARCHAR(255) NOT NULL,
+  type VARCHAR(50) NOT NULL,
+  location VARCHAR(255),
+  capacity INT,
+  status ENUM('Available','Maintenance','Inactive')
+    DEFAULT 'Available',
+  createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
+);

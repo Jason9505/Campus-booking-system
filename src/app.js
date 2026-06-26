@@ -23,9 +23,22 @@ app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use('/api', routes);
 
 app.use(express.static(path.join(__dirname, '..')));
+app.use(
+    "/vendor/chartjs",
+    express.static(
+        path.join(
+            __dirname,
+            "..",
+            "node_modules",
+            "chart.js",
+            "dist"
+        )
+    )
+);
 
 app.use(notFoundMiddleware);
 app.use(errorHandler);
+
 
 const start = async () => {
   try {

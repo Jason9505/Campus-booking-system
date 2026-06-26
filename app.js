@@ -92,7 +92,11 @@ const dashboardData = {
       <h2>Quick Book</h2>
       <form data-form="quick-book">
         <div class="form-grid">
-          <label>Resource type<select required><option value="">Choose resource</option><option>Meeting Room</option><option>Computer Lab</option><option>Projector</option></select></label>
+          <label>Resource type
+            <select id="quickBookType" required>
+              <option value="">Choose resource</option>
+            </select>
+          </label>
           <label>Date<input type="date" required /></label>
           <label>Time<input type="time" required /></label>
           <label>Capacity<input type="number" min="1" placeholder="20" required /></label>
@@ -302,8 +306,15 @@ const renderDashboard = () => {
   document.querySelector("#dashboardHeading").textContent = data.heading;
   document.querySelector("#dashboardDescription").textContent = data.description;
 
-  document.querySelector("#statGrid").innerHTML = data.stats.map(([label, value, note]) => `
-    <article class="stat-card"><span>${label}</span><strong>${value}</strong><small>${note}</small></article>
+  const stats = data.stats || [];
+
+  document.querySelector("#statGrid").innerHTML =
+  stats.map(([label, value, note]) => `
+      <article class="stat-card">
+          <span>${label}</span>
+          <strong>${value}</strong>
+          <small>${note}</small>
+      </article>
   `).join("");
 
   document.querySelector("#primaryPanel").innerHTML = data.primary;
@@ -351,12 +362,7 @@ const bindDashboardActions = () => {
 };
 
 const resourceManager = {
-  resources: [
-    { id: 1, name: "Meeting Room A", type: "Room", location: "Library Block", capacity: 12, status: "Available" },
-    { id: 2, name: "Computer Lab 1", type: "Lab", location: "FCI Building", capacity: 30, status: "Available" },
-    { id: 3, name: "AV Kit 2", type: "Equipment", location: "Equipment Desk", capacity: "", status: "Maintenance" },
-    { id: 4, name: "Projector Set B", type: "Equipment", location: "Main Auditorium", capacity: "", status: "Available" },
-  ],
+  
   currentResourceId: null,
 
   init() {
@@ -373,20 +379,33 @@ const resourceManager = {
       this.clearForm();
     });
 
-    document.querySelectorAll(".maintenance-btn").forEach((btn) => {
-      btn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        const resourceId = btn.closest(".resource-row").dataset.resourceId;
-        this.openMaintenanceModal(resourceId);
-      });
-    });
+    document.querySelectorAll(".maintenance-btn")
+      .forEach(btn => {
 
-    document.querySelectorAll(".action-btn").forEach((btn) => {
-      btn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        const resourceId = btn.closest(".resource-row").dataset.resourceId;
-        this.editResource(resourceId);
+        btn.addEventListener("click", () => {
+
+          console.log("DELETE CLICKED");
+          const id =
+              btn.dataset.id;
+
+              deleteResource(id);
+        });
+
       });
+
+    document.querySelectorAll(".action-btn")
+    .forEach(btn => {
+
+      btn.addEventListener("click", () => {
+
+        console.log("EDIT CLICKED");
+        console.log(this);
+        const id =
+          btn.dataset.id;
+
+                editResource(id);
+      });
+
     });
   },
 
@@ -544,37 +563,6 @@ const resourceManager = {
     }
   },
 
-  renderTable() {
-    const tbody = document.getElementById("resourcesBody");
-    tbody.innerHTML = this.resources.map((resource) => `
-      <tr data-resource-id="${resource.id}" class="resource-row">
-        <td><strong>${resource.name}</strong></td>
-        <td>${resource.type}</td>
-        <td>${resource.location}</td>
-        <td>${resource.capacity || "-"}</td>
-        <td><span class="badge ${this.getStatusClass(resource.status)}">${resource.status}</span></td>
-        <td><button class="action-btn" type="button">Edit</button><button class="maintenance-btn" type="button">Maintenance</button></td>
-      </tr>
-    `).join("");
-
-    this.bindTableRows();
-    document.querySelectorAll(".maintenance-btn").forEach((btn) => {
-      btn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        const resourceId = btn.closest(".resource-row").dataset.resourceId;
-        this.openMaintenanceModal(resourceId);
-      });
-    });
-
-    document.querySelectorAll(".action-btn").forEach((btn) => {
-      btn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        const resourceId = btn.closest(".resource-row").dataset.resourceId;
-        this.editResource(resourceId);
-      });
-    });
-  },
-
   getStatusClass(status) {
     return status === "Available" ? "ok" : status === "Maintenance" ? "warn" : "wait";
   },
@@ -618,11 +606,30 @@ const reportsManager = {
     document.getElementById("reportsForm").addEventListener("submit", (e) => {
       e.preventDefault();
 
-      const reportType = document.getElementById("reportType").value;
-      const startDate = document.getElementById("reportStart").value;
-      const endDate = document.getElementById("reportEnd").value;
-      const resourceType = document.getElementById("reportResourceType").value;
-      const department = document.getElementById("reportDepartment")?.value || "";
+      const reportType =
+        document.getElementById(
+          'reportType'
+        ).value;
+
+      const startDate =
+        document.getElementById(
+          'reportStart'
+        ).value;
+
+      const endDate =
+        document.getElementById(
+          'reportEnd'
+        ).value;
+
+      const resourceType =
+        document.getElementById(
+          'reportResourceType'
+        ).value;
+
+      const department =
+        document.getElementById(
+          'reportDepartment'
+        ).value;
 
       if (!reportType || !startDate || !endDate) {
         setMessage(e.target, "Please fill in all required fields.", true);
@@ -635,164 +642,7 @@ const reportsManager = {
       }
 
       setMessage(e.target, "Generating report...");
-
-      window.setTimeout(() => {
-        this.generateReport(reportType, startDate, endDate, resourceType, department);
-        setMessage(e.target, "Report generated successfully.");
-      }, 300);
     });
-  },
-
-  generateReport(type, startDate, endDate, resourceType, department) {
-    const data = this.generateReportData(type, startDate, endDate, resourceType, department);
-    this.currentReport = { type, startDate, endDate, resourceType, department, data };
-
-    document.getElementById("reportContainer").style.display = "block";
-    document.getElementById("reportTitle").textContent = data.title;
-    document.getElementById("reportContent").innerHTML = this.renderReport(type, data);
-  },
-
-  generateReportData(type, startDate, endDate, resourceType, department) {
-    const daysCount = Math.ceil((new Date(endDate) - new Date(startDate)) / (1000 * 60 * 60 * 24));
-
-    if (type === "heatmap") {
-      return this.generateHeatmapData(daysCount, resourceType);
-    } else if (type === "trends") {
-      return this.generateTrendsData(daysCount, resourceType);
-    } else if (type === "summary") {
-      return this.generateSummaryData(daysCount, resourceType, department);
-    }
-  },
-
-  generateHeatmapData(days, resourceType) {
-    const resources = [
-      "Meeting Room A",
-      "Meeting Room B",
-      "Computer Lab 1",
-      "Computer Lab 2",
-      "Projector Set B",
-      "AV Kit 2",
-    ];
-
-    const heatmap = resources.map((resource) => ({
-      name: resource,
-      utilization: Array.from({ length: 7 }, () => Math.floor(Math.random() * 100)),
-    }));
-
-    return {
-      title: "Utilisation Heatmap",
-      heatmap,
-      avgUtilization: Math.round(
-        heatmap.reduce((sum, r) => sum + r.utilization.reduce((a, b) => a + b, 0), 0) /
-          (heatmap.length * 7)
-      ),
-      peakDay: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"][
-        Math.floor(Math.random() * 7)
-      ],
-    };
-  },
-
-  generateTrendsData(days, resourceType) {
-    const weekDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-    const bookings = Array.from({ length: 7 }, (_, i) => ({
-      day: weekDays[i],
-      count: Math.floor(Math.random() * 40 + 20),
-      cancelled: Math.floor(Math.random() * 5),
-      noShow: Math.floor(Math.random() * 3),
-    }));
-
-    const totalBookings = bookings.reduce((sum, b) => sum + b.count, 0);
-    const totalCancelled = bookings.reduce((sum, b) => sum + b.cancelled, 0);
-    const totalNoShow = bookings.reduce((sum, b) => sum + b.noShow, 0);
-
-    return {
-      title: "Booking Trends",
-      bookings,
-      totalBookings,
-      totalCancelled,
-      totalNoShow,
-      cancellationRate: Math.round((totalCancelled / (totalBookings + totalCancelled)) * 100),
-      noShowRate: Math.round((totalNoShow / totalBookings) * 100),
-    };
-  },
-
-  generateSummaryData(days, resourceType, department) {
-    const departments = ["Engineering", "Science", "Business"];
-    const summaryData = departments.map((dept) => ({
-      department: dept,
-      totalBookings: Math.floor(Math.random() * 200 + 100),
-      noShows: Math.floor(Math.random() * 20),
-      cancellations: Math.floor(Math.random() * 15),
-    }));
-
-    const totalBookings = summaryData.reduce((sum, d) => sum + d.totalBookings, 0);
-    const totalNoShows = summaryData.reduce((sum, d) => sum + d.noShows, 0);
-
-    return {
-      title: "No-show Summary",
-      summaryData,
-      totalBookings,
-      totalNoShows,
-      noShowRate: Math.round((totalNoShows / totalBookings) * 100),
-    };
-  },
-
-  renderReport(type, data) {
-    if (type === "heatmap") {
-      return this.renderHeatmapReport(data);
-    } else if (type === "trends") {
-      return this.renderTrendsReport(data);
-    } else if (type === "summary") {
-      return this.renderSummaryReport(data);
-    }
-  },
-
-  renderHeatmapReport(data) {
-    const dayLabels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-    let html = `
-      <div class="report-stats">
-        <div class="report-stat">
-          <strong>${data.avgUtilization}%</strong>
-          <span>Average Utilization</span>
-        </div>
-        <div class="report-stat">
-          <strong>${data.peakDay}</strong>
-          <span>Peak Day</span>
-        </div>
-        <div class="report-stat">
-          <strong>${data.heatmap.length}</strong>
-          <span>Resources Tracked</span>
-        </div>
-      </div>
-      <h3 class="report-title">Utilisation by Resource</h3>
-    `;
-
-    data.heatmap.forEach((resource) => {
-      html += `<div style="margin-bottom: 20px;">
-        <p style="margin: 0 0 10px; font-weight: 800; color: var(--ink);">${resource.name}</p>
-        <div class="heatmap-grid">`;
-
-      dayLabels.forEach((day, index) => {
-        const value = resource.utilization[index];
-        let className = "heatmap-low";
-        if (value >= 70) className = "heatmap-very-high";
-        else if (value >= 50) className = "heatmap-high";
-        else if (value >= 30) className = "heatmap-medium";
-
-        html += `<div class="heatmap-label ${className}" title="${day}: ${value}%">${value}%</div>`;
-      });
-
-      html += `</div></div>`;
-    });
-
-    html += `<div class="chart-legend">
-      <div class="legend-item"><span class="legend-color heatmap-low"></span> 0-29%</div>
-      <div class="legend-item"><span class="legend-color heatmap-medium"></span> 30-49%</div>
-      <div class="legend-item"><span class="legend-color heatmap-high"></span> 50-69%</div>
-      <div class="legend-item"><span class="legend-color heatmap-very-high"></span> 70%+</div>
-    </div>`;
-
-    return html;
   },
 
   renderTrendsReport(data) {
@@ -957,5 +807,1916 @@ if (document.body.contains(document.querySelector("#dashboard"))) {
   }
 }
 
-updatePasswordStrength();
-bindForms();
+///////
+
+async function loadPolicySummary(){
+
+    try{
+
+        const response =
+        await fetch(
+            "/api/policy",
+            {
+                headers:{
+                    Authorization:
+                    `Bearer ${localStorage.getItem("crbsToken")}`
+                }
+            }
+        );
+
+        const result =
+        await response.json();
+
+        if(!result.success) return;
+
+        const p =
+        result.data;
+
+        document.getElementById("policyMaximumDuration").textContent =
+        p.maximumDuration;
+
+        document.getElementById("policyMinimumNotice").textContent =
+        p.minimumNotice;
+
+        document.getElementById("policyAdvanceDays").textContent =
+        p.maxAdvanceDays + " days";
+
+        document.getElementById("policyCancellationDeadline").textContent =
+        p.cancellationDeadline;
+
+    }
+
+    catch(err){
+
+        console.error(err);
+
+    }
+
+}
+
+///////
+
+async function editResource(resourceID) {
+
+  try {
+
+    const response =
+      await fetch(
+        `/api/resources/${resourceID}`,
+        {
+          headers: {
+            Authorization:
+              `Bearer ${localStorage.getItem('crbsToken')}`
+          }
+        }
+      );
+
+    const result =
+      await response.json();
+
+    const resource =
+      result.data;
+
+    document.getElementById(
+      'editingResourceID'
+    ).value =
+      resource.resourceID;
+
+    document.getElementById(
+      'resourceName'
+    ).value =
+      resource.name;
+
+    document.getElementById(
+      'resourceType'
+    ).value =
+      resource.type;
+
+    document.getElementById(
+      'resourceLocation'
+    ).value =
+      resource.location || '';
+
+    document.getElementById(
+      'resourceCapacity'
+    ).value =
+      resource.capacity || '';
+
+    document.getElementById(
+      'resourceStatus'
+    ).value =
+      resource.status;
+
+    document.getElementById(
+      'panelTitle'
+    ).textContent =
+      'Edit Resource';
+
+    document.getElementById(
+      'resourcePanel'
+    ).classList.add('open');
+
+  } catch (err) {
+
+    console.error(err);
+
+  }
+
+}
+
+async function loadResources() {
+  try {
+
+    const resources = await API.get('/api/resources');
+
+    const container =
+      document.getElementById('resourceResults');
+
+    container.innerHTML = '';
+
+    resources.forEach(resource => {
+
+      container.innerHTML += `
+        <article class="resource-card">
+          <div>
+            <h3>${resource.name}</h3>
+
+            <p>
+              ${resource.location || 'N/A'}
+              -
+              Capacity: ${resource.capacity || '-'}
+              -
+              Status: ${resource.status}
+            </p>
+
+            <p>
+              Type: ${resource.type}
+            </p>
+          </div>
+
+          <button
+            class="book-btn"
+            data-id="${resource.resourceID}"
+            data-name="${resource.name}"
+            type="button">
+            Book
+          </button>
+        </article>
+      `;
+    });
+
+    document.querySelectorAll(".book-btn").forEach(btn => {
+
+        btn.addEventListener("click", () => {
+
+            selectResource(
+                btn.dataset.id,
+                btn.dataset.name
+            );
+
+        });
+
+    });
+
+    displayResources(resources);
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+const bookingForm =
+  document.querySelector(
+    '[data-form="create-booking"]'
+  );
+
+if (bookingForm) {
+
+  bookingForm.addEventListener(
+    'submit',
+    async (e) => {
+
+      e.preventDefault();
+      console.log('BOOKING FORM SUBMITTED');
+
+      try {
+
+        const resourceID =
+          document.getElementById(
+            'resourceID'
+          ).value;
+
+        const date =
+          document.getElementById(
+            'createBookingDate'
+          ).value;
+
+        const startTime =
+          document.getElementById(
+            'startTime'
+          ).value;
+
+        const endTime =
+          document.getElementById(
+            'endTime'
+          ).value;
+
+        const startDateTime =
+          `${date} ${startTime}:00`;
+
+        const endDateTime =
+          `${date} ${endTime}:00`;
+
+          console.log({
+            resourceID,
+            date,
+            startTime,
+            endTime
+          });
+        const response =
+
+          await fetch(
+            '/api/bookings',
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type':
+                  'application/json',
+                Authorization:
+                  `Bearer ${localStorage.getItem('crbsToken')}`
+              },
+              body: JSON.stringify({
+                resourceID,
+                startDateTime,
+                endDateTime
+              })
+            }
+          );
+
+        const result =
+          await response.json();
+
+        document.getElementById(
+          'bookingMessage'
+        ).textContent =
+          result.message;
+
+      } catch (err) {
+
+        console.error(err);
+
+        document.getElementById(
+          'bookingMessage'
+        ).textContent =
+          'Booking failed';
+
+      }
+
+    }
+  );
+
+}
+
+async function loadMyBookings(filter = "upcoming") {
+
+  try {
+
+    const response =
+      await fetch(
+          `/api/bookings/my?filter=${filter}`,
+          {
+              headers:{
+                  Authorization:
+                  `Bearer ${localStorage.getItem("crbsToken")}`
+              }
+          }
+      );
+
+    const result =
+      await response.json();
+
+    const tbody =
+      document.getElementById('bookingsBody');
+
+    if (!tbody) return;
+
+    tbody.innerHTML = '';
+
+    result.data.forEach(booking => {
+
+      tbody.innerHTML += `
+        <tr>
+          <td>${booking.resourceName}</td>
+          <td>${new Date(
+              booking.startDateTime
+            ).toLocaleDateString()}</td>
+          <td>
+            ${new Date(
+              booking.startDateTime
+            ).toLocaleTimeString([], {
+              hour: '2-digit',
+              minute: '2-digit'
+            })}
+          </td>
+          <td>${booking.status}</td>
+          <td>
+              <button
+                  class="ghost-btn cancel-btn"
+                  data-id="${booking.bookingID}">
+                  Cancel
+              </button>
+          </td>
+        </tr>
+      `;
+
+    });
+
+  } catch (err) {
+
+    console.error(err);
+
+  }
+
+  document.querySelectorAll(".cancel-btn")
+    .forEach(btn => {
+
+        btn.addEventListener("click", () => {
+
+            cancelBooking(btn.dataset.id);
+
+        });
+
+    });
+}
+
+function bindBookingTabs(){
+
+    document.getElementById("upcomingTab")
+    ?.addEventListener("click",()=>{
+
+        setActiveTab("upcomingTab");
+
+        loadMyBookings("upcoming");
+
+    });
+
+    document.getElementById("pendingTab")
+    ?.addEventListener("click",()=>{
+
+        setActiveTab("pendingTab");
+
+        loadMyBookings("pending");
+
+    });
+
+    document.getElementById("pastTab")
+    ?.addEventListener("click",()=>{
+
+        setActiveTab("pastTab");
+
+        loadMyBookings("past");
+
+    });
+
+    document.getElementById("cancelledTab")
+    ?.addEventListener("click",()=>{
+
+        setActiveTab("cancelledTab");
+
+        loadMyBookings("cancelled");
+
+    });
+
+}
+
+function setActiveTab(id){
+
+    document
+    .querySelectorAll(".tabs button")
+    .forEach(btn=>btn.classList.remove("active"));
+
+    document
+    .getElementById(id)
+    .classList.add("active");
+
+}
+
+async function cancelBooking(id) {
+
+  if (!confirm('Cancel this booking?'))
+    return;
+
+  try {
+
+    await fetch(
+      `/api/bookings/${id}/cancel`,
+      {
+        method: 'PUT',
+        headers: {
+          Authorization:
+            `Bearer ${localStorage.getItem('crbsToken')}`
+        }
+      }
+    );
+
+    loadMyBookings();
+
+  } catch (err) {
+
+    console.error(err);
+
+  }
+}
+
+function filterBookings(bookings, tab) {
+  const now = new Date();
+
+  return bookings.filter(b => {
+    const status = normalizeStatus(b.status);
+    const start = parseDateTime(b.startDateTime);
+    const end = parseDateTime(b.endDateTime);
+
+    //  PENDING
+    if (tab === "pending") {
+      return status === "pending";
+    }
+
+    //  CANCELLED
+    if (tab === "cancelled") {
+      return status === "cancelled";
+    }
+
+    //  UPCOMING (approved + future start)
+    if (tab === "upcoming") {
+      return (
+        status === "approved" &&
+        start > now
+      );
+    }
+
+    //  PAST (approved + ended)
+    if (tab === "past") {
+      return (
+        status === "approved" &&
+        end < now
+      );
+    }
+
+    return true;
+  });
+}
+
+function renderBookings(tab, bookings) {
+  const tbody = document.getElementById("bookingsBody");
+  tbody.innerHTML = "";
+
+  const filtered = filterBookings(bookings, tab);
+
+  filtered.forEach(b => {
+    tbody.innerHTML += `
+      <tr>
+        <td>${b.resourceID}</td>
+        <td>${b.startDateTime}</td>
+        <td>${b.endDateTime}</td>
+        <td>${b.status}</td>
+        <td><button>View</button></td>
+      </tr>
+    `;
+  });
+}
+
+document.querySelectorAll(".tabs button").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".tabs button").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+
+    const tab = btn.innerText.toLowerCase().split(" ")[0];
+    renderBookings(tab, bookings);
+  });
+});
+
+async function loadResourcesTable() {
+
+  try {
+
+    const response =
+      await fetch('/api/resources', {
+        headers: {
+          Authorization:
+            `Bearer ${localStorage.getItem('crbsToken')}`
+        }
+      });
+
+    const result =
+      await response.json();
+
+    const tbody =
+      document.getElementById('resourcesBody');
+
+    if (!tbody) return;
+
+    tbody.innerHTML = '';
+
+    result.data.forEach(resource => {
+
+      tbody.innerHTML += `
+        <tr class="resource-row" data-resource-id="${resource.resourceID}">
+          <td>
+            <strong>${resource.name}</strong>
+          </td>
+
+          <td>${resource.type}</td>
+
+          <td>${resource.location || '-'}</td>
+
+          <td>${resource.capacity || '-'}</td>
+
+          <td>
+            <span class="badge">
+              ${resource.status}
+            </span>
+          </td>
+
+          <td>
+            <button
+              class="action-btn"
+              data-id="${resource.resourceID}">
+
+              Edit
+
+            </button>
+
+            <button
+              class="maintenance-btn"
+              data-id="${resource.resourceID}">
+
+              Delete
+
+            </button>
+          </td>
+        </tr>
+      `;
+
+    });
+    resourceManager.bindButtons();
+
+  } catch (err) {
+
+    console.error(err);
+
+  }
+
+}
+
+async function deleteResource(id) {
+
+  if (!confirm("Delete this resource?")) {
+    return;
+  }
+
+  try {
+
+    const response =
+      await fetch(
+        `/api/resources/${id}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization:
+              `Bearer ${localStorage.getItem(
+                "crbsToken"
+              )}`
+          }
+        }
+      );
+
+    const result =
+      await response.json();
+
+    alert(result.message);
+
+    loadResourcesTable();
+
+  } catch (err) {
+
+    console.error(err);
+
+    alert("Delete failed");
+
+  }
+
+}
+
+async function searchResources() {
+
+    try {
+
+        const type =
+            document.getElementById("filterType").value;
+
+        const location =
+            document.getElementById("filterLocation").value;
+
+        const capacity =
+            document.getElementById("filterCapacity").value;
+
+        const date =
+            document.getElementById("bookingDate").value;
+
+        const response =
+            await fetch(
+                `/api/resources/search?type=${encodeURIComponent(type)}&location=${encodeURIComponent(location)}&capacity=${capacity}&date=${date}`,
+                {
+                    headers: {
+                        Authorization:
+                            `Bearer ${localStorage.getItem("crbsToken")}`
+                    }
+                }
+            );
+
+        const result = await response.json();
+
+        if (!result.success) {
+
+            alert("Unable to search resources.");
+
+            return;
+
+        }
+
+        displayResources(result.data);
+
+    }
+
+    catch (err) {
+
+        console.error(err);
+
+    }
+
+}
+
+
+function selectResource(id, name){
+
+    document.getElementById("resourceID").value = id;
+
+
+    showScreen("create-booking");
+
+}
+
+const searchForm =
+  document.querySelector(
+    '[data-form="search"]'
+  );
+
+async function loadDashboard() {
+
+  const resourcesRes =
+    await fetch('/api/resources', {
+      headers: {
+        Authorization:
+          `Bearer ${localStorage.getItem('crbsToken')}`
+      }
+    });
+
+  const bookingsRes =
+    await fetch('/api/bookings/my', {
+      headers: {
+        Authorization:
+          `Bearer ${localStorage.getItem('crbsToken')}`
+      }
+    });
+
+  const resources =
+    await resourcesRes.json();
+
+  const bookings =
+    await bookingsRes.json();
+
+  document.getElementById(
+    'statGrid'
+  ).innerHTML = `
+
+    <div class="stat-card">
+      <h3>${resources.data.length}</h3>
+      <p>Resources</p>
+    </div>
+
+    <div class="stat-card">
+      <h3>${bookings.data.length}</h3>
+      <p>My Bookings</p>
+    </div>
+
+  `;
+
+}
+
+async function loadResourceDropdown() {
+
+  const resources =
+    await API.get('/api/resources');
+
+  const select =
+    document.getElementById('resourceID');
+
+  select.innerHTML =
+    '<option value="">Select Resource</option>';
+
+  resources.forEach(resource => {
+
+    select.innerHTML += `
+      <option value="${resource.resourceID}">
+        ${resource.name}
+      </option>
+    `;
+  });
+
+  const dropdown =
+      document.getElementById('filterType');
+
+    dropdown.innerHTML =
+      '<option value="">All Types</option>';
+
+    const types = [...new Set(
+      resources.map(resource => resource.type)
+    )];
+
+    types.forEach(type => {
+
+      dropdown.innerHTML += `
+        <option value="${type}">
+          ${type}
+        </option>
+      `;
+    });
+////
+    const Quickdropdown =
+      document.getElementById('quickBookType');
+
+    if (Quickdropdown) {
+
+      Quickdropdown.innerHTML =
+        '<option value="">Choose resource</option>';
+
+      const Quicktypes = [...new Set(
+        resources.map(resource => resource.type)
+      )];
+
+      Quicktypes.forEach(type => {
+
+        Quickdropdown.innerHTML += `
+          <option value="${type}">
+            ${type}
+          </option>
+        `;
+      });
+
+    }
+/////
+    const resourc =
+      document.getElementById('resourceType');
+
+    if (!resourc) return;
+
+    resourc.innerHTML =
+      '<option value="">Select type</option>';
+
+    const resourcS = [...new Set(
+      resources.map(resource => resource.type)
+    )];
+
+    resourcS.forEach(type => {
+
+      resourc.innerHTML += `
+        <option value="${type}">
+          ${type}
+        </option>
+      `;
+    });
+
+    /////
+    const reportDropdown =
+      document.getElementById("reportResourceType");
+
+      reportDropdown.innerHTML =
+      '<option value="">All Resources</option>';
+
+      const typess = [...new Set(resources.map(r => r.type))];
+
+      typess.forEach(type => {
+
+          reportDropdown.innerHTML += `
+              <option value="${type}">
+                  ${type}
+              </option>
+          `;
+
+      });
+}
+
+function displayResources(resources) {
+
+    const container =
+        document.getElementById("resourceResults");
+
+    container.innerHTML = "";
+
+    resources.forEach(resource => {
+
+        container.innerHTML += `
+
+        <article class="resource-card">
+
+            <div>
+
+                <h3>${resource.name}</h3>
+
+                <p>
+                     ${resource.location || "-"}
+                </p>
+
+                <p>
+                     Capacity:
+                    ${resource.capacity || "-"}
+                </p>
+
+                <p>
+                    Status:
+                    <span style="font-weight:bold;
+                    color:${
+                        resource.status === "Available"
+                        ? "green"
+                        : "red"
+                    }">
+
+                        ${resource.status}
+
+                    </span>
+                </p>
+
+            </div>
+
+            <button
+                class="book-btn"
+                data-id="${resource.resourceID}"
+                data-name="${resource.name}"
+                ${resource.status=== "Inactive" ||
+                  resource.status == "Maintenance"
+                    ? "disabled"
+                    : ""
+                }>
+
+                ${
+                     resource.status === "Available"
+            ? "Book"
+            : resource.status === "Maintenance"
+            ? "Maintenance"
+            : "Inactive"
+                }
+
+            </button>
+
+        </article>
+
+        `;
+
+    });
+
+    document.querySelectorAll(".book-btn").forEach(btn => {
+
+        btn.addEventListener("click", () => {
+
+            selectResource(
+                btn.dataset.id,
+                btn.dataset.name
+            );
+
+        });
+
+    });
+
+}
+
+const resourceForm =
+  document.getElementById(
+    'resourceForm'
+  );
+
+if (resourceForm) {
+
+  resourceForm.addEventListener(
+    'submit',
+    async (e) => {
+
+      e.preventDefault();
+
+      try {
+
+        const name =
+          document.getElementById(
+            'resourceName'
+          ).value;
+
+        const type =
+          document.getElementById(
+            'resourceType'
+          ).value;
+
+        const location =
+          document.getElementById(
+            'resourceLocation'
+          ).value;
+
+        const capacity =
+          document.getElementById(
+            'resourceCapacity'
+          ).value;
+
+        const status =
+          document.getElementById(
+            'resourceStatus'
+          ).value;
+
+        const editID =
+          document.getElementById(
+            'editingResourceID'
+          ).value;
+
+        const url =
+          editID
+            ? `/api/resources/${editID}`
+            : '/api/resources';
+
+        const method =
+          editID
+            ? 'PUT'
+            : 'POST';
+
+        const response =
+          await fetch(url, {
+
+            method,
+
+            headers: {
+              'Content-Type':
+                'application/json',
+
+              Authorization:
+                `Bearer ${localStorage.getItem(
+                  'crbsToken'
+                )}`
+            },
+
+            body: JSON.stringify({
+              name,
+              type,
+              location,
+              capacity,
+              status
+            })
+
+          });
+
+        const result =
+          await response.json();
+
+        alert(result.message);
+
+        resourceForm.reset();
+
+        document.getElementById(
+          'editingResourceID'
+        ).value = '';
+
+        loadResourcesTable();
+
+      } catch (err) {
+
+        console.error(err);
+
+        alert(
+          'Failed to save resource'
+        );
+
+      }
+
+    }
+  );
+
+}
+
+async function loadPendingApprovals() {
+
+  try {
+
+    const response =
+      await fetch(
+        '/api/bookings/pending',
+        {
+          headers: {
+            Authorization:
+              `Bearer ${localStorage.getItem(
+                'crbsToken'
+              )}`
+          }
+        }
+      );
+
+    const result =
+      await response.json();
+
+    const list =
+      document.getElementById(
+        'approvalList'
+      );
+
+    list.innerHTML = '';
+
+    result.data.forEach(booking => {
+
+      list.innerHTML += `
+          <article class="approval-card">
+
+            <div>
+
+              <h3>${booking.resourceName}</h3>
+
+              <p>
+
+                User: ${booking.userName}
+                <br>
+
+                Start:
+                ${new Date(
+                  booking.startDateTime
+                ).toLocaleString()}
+
+              </p>
+
+            </div>
+
+            <div>
+
+              <button
+                class="approve-btn"
+                data-id="${booking.bookingID}">
+
+                Approve
+
+              </button>
+
+              <button
+                class="reject-btn"
+                data-id="${booking.bookingID}">
+
+                Reject
+
+              </button>
+
+            </div>
+
+          </article>
+        `;
+
+    });
+
+    document.querySelectorAll('.approve-btn')
+      .forEach(btn => {
+
+        btn.addEventListener(
+          'click',
+          async () => {
+
+            await approveBooking(
+              btn.dataset.id
+            );
+
+          }
+        );
+
+      });
+
+      document.querySelectorAll('.reject-btn')
+      .forEach(btn => {
+
+        btn.addEventListener(
+          'click',
+          async () => {
+
+            await rejectBooking(
+              btn.dataset.id
+            );
+
+          }
+        );
+
+      });
+
+  } catch (err) {
+
+    console.error(err);
+
+  }
+
+}
+
+async function approveBooking(id) {
+
+  try {
+
+    await fetch(
+      `/api/bookings/${id}/approve`,
+      {
+        method: 'PUT',
+        headers: {
+          Authorization:
+            `Bearer ${localStorage.getItem(
+              'crbsToken'
+            )}`
+        }
+      }
+    );
+
+    loadPendingApprovals();
+
+  } catch (err) {
+
+    console.error(err);
+
+  }
+
+}
+
+async function rejectBooking(id) {
+
+  try {
+
+    await fetch(
+      `/api/bookings/${id}/reject`,
+      {
+        method: 'PUT',
+        headers: {
+          Authorization:
+            `Bearer ${localStorage.getItem(
+              'crbsToken'
+            )}`
+        }
+      }
+    );
+
+    loadPendingApprovals();
+
+  } catch (err) {
+
+    console.error(err);
+
+  }
+
+}
+/////reports_section
+
+let reportChart = null;
+
+function displayReport(type, data) {
+
+    const container =
+        document.getElementById("reportContainer");
+
+    const content =
+        document.getElementById("reportContent");
+
+    container.style.display = "block";
+
+    if (data.length === 0) {
+
+        content.innerHTML =
+            "<p>No data found.</p>";
+
+        return;
+    }
+
+    content.innerHTML =
+        `<canvas id="reportChart"></canvas>`;
+
+    const ctx =
+        document
+            .getElementById("reportChart");
+
+    if (reportChart) {
+
+        reportChart.destroy();
+
+    }
+
+    if (type === "heatmap") {
+
+        reportChart =
+            new Chart(ctx, {
+
+                type: "bar",
+
+                data: {
+
+                    labels:
+                        data.map(r => r.name),
+
+                    datasets: [{
+
+                        label:
+                            "Bookings",
+
+                        data:
+                            data.map(r => r.totalBookings)
+
+                    }]
+
+                },
+
+                options: {
+
+                    indexAxis: "y",
+
+                    responsive: true,
+
+                    plugins: {
+
+                        legend: {
+
+                            display: false
+
+                        }
+
+                    }
+
+                }
+
+            });
+
+    }
+
+    else if (type === "trends") {
+
+        reportChart =
+            new Chart(ctx, {
+
+                type: "line",
+
+                data: {
+
+                    labels:
+                        data.map(r => r.bookingDate),
+
+                    datasets: [{
+
+                        label:
+                            "Bookings",
+
+                        data:
+                            data.map(r => r.totalBookings),
+
+                        fill: false,
+
+                        tension: 0.3
+
+                    }]
+
+                },
+
+                options: {
+
+                    responsive: true
+
+                }
+
+            });
+
+    }
+
+    else if (type === "summary") {
+
+        reportChart =
+            new Chart(ctx, {
+
+                type: "doughnut",
+
+                data: {
+
+                    labels:
+                        data.map(r => r.status),
+
+                    datasets: [{
+
+                        data:
+                            data.map(r => r.total)
+
+                    }]
+
+                }
+
+            });
+
+    }
+
+}
+
+const reportsForm =
+document.getElementById("reportsForm");
+
+if (reportsForm) {
+
+    reportsForm.addEventListener(
+        "submit",
+        async function(e){
+
+            e.preventDefault();
+
+            const reportType =
+                document.getElementById("reportType").value;
+
+            const startDate =
+                document.getElementById("reportStart").value;
+
+            const endDate =
+                document.getElementById("reportEnd").value;
+
+            const resourceType =
+                document.getElementById("reportResourceType").value;
+
+            const department =
+                document.getElementById("reportDepartment").value;
+
+            const response =
+                await fetch(
+                    `/api/reports?reportType=${reportType}&startDate=${startDate}&endDate=${endDate}&resourceType=${resourceType}&department=${department}`,
+                    {
+                        headers:{
+                            Authorization:
+                            `Bearer ${localStorage.getItem("crbsToken")}`
+                        }
+                    }
+                );
+
+            const result =
+                await response.json();
+
+            console.log(result);
+
+            displayReport(
+                reportType,
+                result.data
+            );
+
+        }
+    );
+
+}
+
+async function loadDepartments(){
+
+    const response =
+    await fetch("/api/reports/departments",{
+
+        headers:{
+            Authorization:
+            `Bearer ${localStorage.getItem("crbsToken")}`
+        }
+
+    });
+
+    const result =
+    await response.json();
+
+    const select =
+    document.getElementById("reportDepartment");
+
+    select.innerHTML =
+    '<option value="">All Departments</option>';
+
+    result.data.forEach(dep=>{
+
+        select.innerHTML +=
+        `<option value="${dep.department}">
+            ${dep.department}
+        </option>`;
+
+    });
+
+}
+
+function exportPdf() {
+
+    const table =
+        document.querySelector("#reportContent table");
+
+    if (!table) {
+
+        alert("Generate a report first.");
+
+        return;
+
+    }
+
+    const { jsPDF } = window.jspdf;
+
+    const doc =
+        new jsPDF();
+
+    doc.setFontSize(18);
+
+    doc.text("Campus Resource Booking Report",20,20);
+
+    let y = 35;
+
+    table.querySelectorAll("tr").forEach(row=>{
+
+        let line=[];
+
+        row.querySelectorAll("th,td")
+        .forEach(cell=>{
+
+            line.push(cell.innerText);
+
+        });
+
+        doc.text(
+            line.join("   |   "),
+            20,
+            y
+        );
+
+        y += 10;
+
+    });
+
+    doc.save("Report.pdf");
+
+}
+
+function exportCsv() {
+
+    const table =
+        document.querySelector("#reportContent table");
+
+    if (!table) {
+
+        alert("Generate a report first.");
+
+        return;
+
+    }
+
+    let csv = [];
+
+    table.querySelectorAll("tr").forEach(row => {
+
+        const cols = row.querySelectorAll("th,td");
+
+        csv.push(
+            [...cols]
+            .map(col => `"${col.innerText}"`)
+            .join(",")
+        );
+
+    });
+
+    const blob =
+        new Blob(
+            [csv.join("\n")],
+            {
+                type:"text/csv"
+            }
+        );
+
+    const url =
+        URL.createObjectURL(blob);
+
+    const a =
+        document.createElement("a");
+
+    a.href = url;
+
+    a.download = "Report.csv";
+
+    a.click();
+
+    URL.revokeObjectURL(url);
+
+}
+
+const exportPdfBtn =
+    document.getElementById("exportPdfBtn");
+
+if (exportPdfBtn) {
+
+    exportPdfBtn.addEventListener("click", async () => {
+
+        const reportType =
+            document.getElementById("reportType").value;
+
+        const startDate =
+            document.getElementById("reportStart").value;
+
+        const endDate =
+            document.getElementById("reportEnd").value;
+
+        const resourceType =
+            document.getElementById("reportResourceType").value;
+
+        const response = await fetch(
+            `/api/reports/pdf?reportType=${reportType}&startDate=${startDate}&endDate=${endDate}&resourceType=${resourceType}`,
+            {
+                headers: {
+                    Authorization:
+                        `Bearer ${localStorage.getItem("crbsToken")}`
+                }
+            }
+        );
+
+        const blob = await response.blob();
+
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement("a");
+
+        a.href = url;
+        a.download = "Report.pdf";
+        a.click();
+
+        URL.revokeObjectURL(url);
+
+    });
+
+}
+
+const exportCsvBtn =
+    document.getElementById("exportCsvBtn");
+
+if (exportCsvBtn) {
+
+    exportCsvBtn.addEventListener("click", async () => {
+
+        const reportType =
+            document.getElementById("reportType").value;
+
+        const startDate =
+            document.getElementById("reportStart").value;
+
+        const endDate =
+            document.getElementById("reportEnd").value;
+
+        const resourceType =
+            document.getElementById("reportResourceType").value;
+
+        const department =
+            document.getElementById("reportDepartment").value;
+
+        const response = await fetch(
+            `/api/reports/csv?reportType=${reportType}&startDate=${startDate}&endDate=${endDate}&resourceType=${resourceType}&department=${department}`,
+            {
+                headers: {
+                    Authorization:
+                        `Bearer ${localStorage.getItem("crbsToken")}`
+                }
+            }
+        );
+
+        const blob = await response.blob();
+
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement("a");
+
+        a.href = url;
+        a.download = "Report.csv";
+        a.click();
+
+        URL.revokeObjectURL(url);
+
+    });
+
+}
+
+//policy section
+
+async function loadPolicy() {
+
+    try {
+
+        const response = await fetch(
+            "/api/policy",
+            {
+                headers: {
+                    Authorization:
+                        `Bearer ${localStorage.getItem("crbsToken")}`
+                }
+            }
+        );
+
+        if (!response.ok) {
+
+            console.error(
+                "Policy route not found:",
+                response.status
+            );
+
+            return;
+        }
+
+        const result =
+            await response.json();
+
+        if (!result.success || !result.data) {
+
+            console.error(result);
+
+            return;
+
+        }
+
+        const p = result.data;
+
+        document.getElementById("maxAdvanceDays").value =
+            p.maxAdvanceDays;
+
+        document.getElementById("minimumNotice").value =
+            p.minimumNotice;
+
+        document.getElementById("maximumDuration").value =
+            p.maximumDuration;
+
+        document.getElementById("cancellationDeadline").value =
+            p.cancellationDeadline;
+
+    }
+
+    catch(err){
+
+        console.error(err);
+
+    }
+
+}
+
+const policyForm = document.querySelector('[data-form="policy"]');
+
+if(policyForm){
+  policyForm.addEventListener(
+    "submit",
+    async function(e){
+
+      e.preventDefault();
+
+      const body={
+
+          maxAdvanceDays:
+          document.getElementById(
+              "maxAdvanceDays"
+          ).value,
+
+          minimumNotice:
+          document.getElementById(
+              "minimumNotice"
+          ).value,
+
+          maximumDuration:
+          document.getElementById(
+              "maximumDuration"
+          ).value,
+
+          cancellationDeadline:
+          document.getElementById(
+              "cancellationDeadline"
+          ).value
+
+      };
+
+      const response =
+      await fetch(
+          "/api/policy",
+          {
+
+              method:"PUT",
+
+              headers:{
+
+                  "Content-Type":
+                  "application/json",
+
+                  Authorization:
+                  `Bearer ${localStorage.getItem("crbsToken")}`
+
+              },
+
+              body:JSON.stringify(body)
+
+          }
+      );
+
+      const result =
+      await response.json();
+
+      alert(result.message);
+    
+  });
+}
+
+async function loadPolicyLogs(){
+
+    const response =
+        await fetch("/api/policy/logs",{
+
+            headers:{
+                Authorization:
+                `Bearer ${localStorage.getItem("crbsToken")}`
+            }
+
+        });
+
+    const result =
+        await response.json();
+
+    const container =
+        document.getElementById("policyLog");
+
+    container.innerHTML="";
+
+    result.data.forEach(log=>{
+
+        container.innerHTML += `
+            <p>
+                <strong>
+                    ${new Date(log.changedAt)
+                        .toLocaleDateString()}
+                </strong>
+
+                ${log.description}
+            </p>
+        `;
+
+    });
+
+}
+
+////dashboard data
+
+async function loadDashboard2(){
+
+    const response =
+    await fetch(
+        "/api/dashboard",
+        {
+            headers:{
+                Authorization:
+                `Bearer ${localStorage.getItem("crbsToken")}`
+            }
+        }
+    );
+
+    const result =
+    await response.json();
+
+    if(!result.success) return;
+
+    const d =
+    result.data;
+    const role = getStoredRole().toLowerCase();
+
+    if(role==="admin"){
+
+        dashboardData.admin.stats=[
+
+            [
+                "Total Bookings",
+                d.totalBookings,
+                "All bookings"
+            ],
+
+            [
+                "Active Users",
+                d.activeUsers,
+                "Registered"
+            ],
+
+            [
+                "Pending Requests",
+                d.pendingRequests,
+                "Need review"
+            ],
+
+            [
+                "Resources",
+                d.resources,
+                "Managed"
+            ]
+
+        ];
+
+        dashboardData.admin.primary=`
+
+        <h2>Administrative Summary</h2>
+
+        <p><strong>Most Used Resource:</strong> ${d.mostUsed}</p>
+
+        <p><strong>Peak Booking Day:</strong> ${d.peakDay}</p>
+
+        <p><strong>Policy Status:</strong> Active</p>
+
+        `;
+
+    }
+
+    else if(role==="student"){
+
+      dashboardData.student.stats=[
+
+          [
+              "Upcoming Bookings",
+              d.upcomingBookings,
+              "Future"
+          ],
+
+          [
+              "Pending Approval",
+              d.pendingApproval,
+              "Waiting"
+          ],
+
+          [
+              "Available Resources",
+              d.availableResources,
+              "Today"
+          ]
+
+      ];
+
+    }
+    else if(role==="staff"){
+
+        dashboardData.staff.stats=[
+
+            [
+                "Upcoming Bookings",
+                d.upcomingBookings,
+                "Future"
+            ],
+
+            [
+                "Pending Approval",
+                d.pendingApproval,
+                "Waiting"
+            ],
+
+            [
+                "Available Resources",
+                d.availableResources,
+                "Today"
+            ]
+
+        ];
+
+    }
+
+    renderDashboard();
+}
+
+////
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    // Safe to run on every page
+    bindForms();
+    updatePasswordStrength();
+
+    const token =
+        localStorage.getItem("crbsToken");
+
+    // If user isn't logged in, stop here
+    if (!token) return;
+
+    if(localStorage.getItem("crbsToken")){
+
+        loadDashboard2();
+
+    }
+
+    if(localStorage.getItem("crbsToken")){
+
+        loadMyBookings();
+
+        bindBookingTabs();
+
+    }
+
+    // Dashboard-only functions
+    loadResources();
+    loadResourceDropdown();
+    loadResourcesTable();
+    loadDepartments();
+    loadPolicy();
+    loadPolicySummary();
+    loadPolicyLogs();
+    loadPendingApprovals();
+    loadMyBookings();
+
+});

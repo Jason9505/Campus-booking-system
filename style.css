@@ -1092,3 +1092,15 @@ td {
     height: 200px;
   }
 }
+
+.book-btn:hover:not(:disabled) {
+    background: #084298;
+}
+
+.book-btn:disabled {
+    background: #e5e5e5;
+    color: #898a8d;
+    cursor: not-allowed;
+    opacity: 1;          /* prevents browser from making it faded */
+}
+
