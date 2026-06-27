@@ -1422,20 +1422,35 @@ async function searchResources() {
         const date =
             document.getElementById("bookingDate").value;
 
+        const time =
+            document.getElementById("bookingTime").value;
+
         const response =
             await fetch(
-                `/api/resources/search?type=${encodeURIComponent(type)}&location=${encodeURIComponent(location)}&capacity=${capacity}&date=${date}`,
+
+                `/api/resources/search?type=${encodeURIComponent(type)}
+                &location=${encodeURIComponent(location)}
+                &capacity=${capacity}
+                &date=${date}
+                &time=${time}`.replace(/\s+/g,''),
+
                 {
-                    headers: {
+
+                    headers:{
+
                         Authorization:
-                            `Bearer ${localStorage.getItem("crbsToken")}`
+                        `Bearer ${localStorage.getItem("crbsToken")}`
+
                     }
+
                 }
+
             );
 
-        const result = await response.json();
+        const result =
+            await response.json();
 
-        if (!result.success) {
+        if(!result.success){
 
             alert("Unable to search resources.");
 
@@ -1447,13 +1462,22 @@ async function searchResources() {
 
     }
 
-    catch (err) {
+    catch(err){
 
         console.error(err);
 
     }
 
 }
+
+document.querySelector('[data-form="search"]')
+?.addEventListener("submit", function(e){
+
+    e.preventDefault();
+
+    searchResources();
+
+});
 
 
 function selectResource(id, name){
@@ -1464,11 +1488,6 @@ function selectResource(id, name){
     showScreen("create-booking");
 
 }
-
-const searchForm =
-  document.querySelector(
-    '[data-form="search"]'
-  );
 
 async function loadDashboard() {
 

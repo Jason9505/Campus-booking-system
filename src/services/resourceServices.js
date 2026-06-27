@@ -59,45 +59,50 @@ const resourceService = {
 
   async search(filters){
 
-      let sql=`
+      let sql = `
+          SELECT
+              r.*,
 
-      SELECT
+              CASE
 
-          r.*,
+                  WHEN EXISTS(
 
-          CASE
+                      SELECT 1
 
-              WHEN EXISTS(
+                      FROM bookings b
 
-                  SELECT 1
-                  FROM bookings b
+                      WHERE b.resourceID = r.resourceID
 
-                  WHERE b.resourceID=r.resourceID
+                      AND DATE(b.startDateTime)=?
 
-                  AND DATE(b.startDateTime)=?
-                  AND b.endDateTime > NOW()
+                      AND TIME(b.startDateTime)=?
 
-                  AND b.status IN('Pending','Confirmed')
+                      AND b.status IN ('Pending','Confirmed')
 
-              )
+                  )
 
-              THEN 'Booked'
+                  THEN 'Booked'
 
-              ELSE 'Available'
+                  ELSE 'Available'
 
-          END availability
+              END availability
 
-      FROM resources r
+          FROM resources r
 
-      WHERE 1=1
-
+          WHERE 1=1
       `;
 
-      const params=[filters.date];
+      const params = [
+
+          filters.date,
+
+          filters.time
+
+      ];
 
       if(filters.type){
 
-          sql+=" AND r.type=?";
+          sql += " AND r.type=?";
 
           params.push(filters.type);
 
@@ -105,7 +110,7 @@ const resourceService = {
 
       if(filters.location){
 
-          sql+=" AND r.location LIKE ?";
+          sql += " AND r.location LIKE ?";
 
           params.push(`%${filters.location}%`);
 
@@ -113,16 +118,13 @@ const resourceService = {
 
       if(filters.capacity){
 
-          sql+=" AND r.capacity>=?";
+          sql += " AND r.capacity>=?";
 
           params.push(filters.capacity);
 
       }
 
-      return await db.queryAll(
-          sql,
-          params
-      );
+      return await db.queryAll(sql, params);
 
   }
 
