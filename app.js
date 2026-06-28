@@ -1531,6 +1531,47 @@ async function loadDashboard() {
 
 }
 
+async function loadFilterOptions() {
+
+  try {
+
+    const data =
+      await API.get('/api/resources/filter-options');
+
+    const typeSelect =
+      document.getElementById('filterType');
+
+    if (typeSelect) {
+      typeSelect.innerHTML =
+        '<option value="">All Types</option>';
+
+      data.types.forEach(type => {
+        typeSelect.innerHTML += `
+          <option value="${type}">${type}</option>
+        `;
+      });
+    }
+
+    const locationSelect =
+      document.getElementById('filterLocation');
+
+    if (locationSelect) {
+      locationSelect.innerHTML =
+        '<option value="">All Locations</option>';
+
+      data.locations.forEach(location => {
+        locationSelect.innerHTML += `
+          <option value="${location}">${location}</option>
+        `;
+      });
+    }
+
+  } catch (err) {
+    console.error('Failed to load filter options:', err);
+  }
+
+}
+
 async function loadResourceDropdown() {
 
   const resources =
@@ -2730,6 +2771,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Dashboard-only functions
     loadResources();
     loadResourceDropdown();
+    loadFilterOptions();
     loadResourcesTable();
     loadDepartments();
     loadPolicy();

@@ -9,6 +9,12 @@ const authMiddleware =
 const router = Router();
 
 router.get(
+  '/filter-options',
+  authMiddleware,
+  resourceController.getFilterOptions
+);
+
+router.get(
     "/search",
     authMiddleware,
     resourceController.searchResources

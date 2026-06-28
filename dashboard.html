@@ -75,7 +75,11 @@
                   <option value="">All Resource Types</option>
                 </select>
               </label>
-              <label>Location<input id="filterLocation" placeholder="FCI Building" /></label>
+              <label>Location
+                <select id="filterLocation">
+                  <option value="">All Locations</option>
+                </select>
+              </label>
               <label>
                 Date
                 <input id="bookingDate" type="date" required />
@@ -84,7 +88,17 @@
                 Time
                 <input id="bookingTime" type="time">
                 </label>
-              <input id="filterCapacity" type="number" min="1" placeholder="30" /></label>
+              <label>Capacity
+                <select id="filterCapacity">
+                  <option value="">Any Capacity</option>
+                  <option value="1">1+</option>
+                  <option value="10">10+</option>
+                  <option value="20">20+</option>
+                  <option value="30">30+</option>
+                  <option value="50">50+</option>
+                  <option value="100">100+</option>
+                </select>
+              </label>
               <button class="primary-btn" type="submit">Apply Filters</button>
               <p class="form-message"></p>
             </form>

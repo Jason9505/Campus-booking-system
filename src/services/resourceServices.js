@@ -57,6 +57,19 @@ const resourceService = {
     return true;
   },
 
+  async getFilterOptions() {
+    const types = await db.queryAll(
+      'SELECT DISTINCT type FROM resources WHERE type IS NOT NULL ORDER BY type'
+    );
+    const locations = await db.queryAll(
+      'SELECT DISTINCT location FROM resources WHERE location IS NOT NULL ORDER BY location'
+    );
+    return {
+      types: types.map(r => r.type),
+      locations: locations.map(r => r.location)
+    };
+  },
+
   async search(filters){
 
       let sql = `

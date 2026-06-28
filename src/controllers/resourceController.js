@@ -115,7 +115,27 @@ const resourceController = {
 
         }
 
+    },
+
+  async getFilterOptions(req, res, next) {
+
+    try {
+
+      const data =
+        await resourceService.getFilterOptions();
+
+      res.json({
+        success: true,
+        data
+      });
+
+    } catch (err) {
+
+      next(err);
+
     }
+
+  }
 
 };
 
