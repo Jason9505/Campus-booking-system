@@ -38,6 +38,7 @@
         <button class="side-link role-admin role-staff" type="button" data-screen="pending-approvals"><span>06</span> Pending Approvals</button>
         <button class="side-link role-admin role-staff" type="button" data-screen="reports"><span>07</span> Reports & Analytics</button>
         <button class="side-link role-admin" type="button" data-screen="policy"><span>08</span> Policy Config</button>
+        <button class="side-link role-admin" type="button" data-screen="user-management"><span>09</span> User Management</button>
       </aside>
 
       <main class="main-area">
@@ -357,8 +358,64 @@
             </section>
           </div>
         </section>
+
+        <section id="user-management" class="screen">
+          <div class="screen-header">
+            <div>
+              <p class="eyebrow">Admin screen</p>
+              <h1>User Management</h1>
+              <p>View, edit, and manage all user accounts on the system.</p>
+            </div>
+          </div>
+          <section class="panel">
+            <h2>Registered Users</h2>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Department</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="usersBody"></tbody>
+              </table>
+            </div>
+          </section>
+        </section>
       </main>
     </div>
+  </div>
+
+  <div id="userPanel" class="side-panel">
+    <div class="side-panel-header">
+      <h2 id="userPanelTitle">Edit User</h2>
+      <button class="close-btn" type="button" aria-label="Close">&times;</button>
+    </div>
+    <form class="panel" data-form="user" id="userForm">
+      <input type="hidden" id="editingUserID" />
+      <label>Name<input id="userName" required /></label>
+      <label>Email<input id="userEmail" type="email" required /></label>
+      <label>Role
+        <select id="userRole" required>
+          <option value="Student">Student</option>
+          <option value="FacultyStaff">Faculty/Staff</option>
+          <option value="ResourceManager">Resource Manager</option>
+          <option value="Admin">Admin</option>
+        </select>
+      </label>
+      <label>Department<input id="userDepartment" /></label>
+      <label>Campus ID<input id="userCampusId" /></label>
+      <label>
+        <input id="userIsActive" type="checkbox" checked />
+        Active account
+      </label>
+      <button class="primary-btn" type="submit">Save User</button>
+      <p class="form-message"></p>
+    </form>
   </div>
 
   <script src="app.js"></script>

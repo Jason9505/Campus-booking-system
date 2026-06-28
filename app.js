@@ -248,6 +248,11 @@ const bindForms = () => {
       if (form.dataset.form === "create-booking") {
         window.setTimeout(() => showScreen("my-bookings"), 450);
       }
+
+      if (form.dataset.form === "user") {
+        await saveUser();
+        return;
+      }
     });
   });
 };
@@ -1401,6 +1406,241 @@ async function deleteResource(id) {
     console.error(err);
 
     alert("Delete failed");
+
+  }
+
+}
+
+async function loadUsers() {
+
+  try {
+
+    const response =
+      await fetch('/api/admin/users', {
+        headers: {
+          Authorization:
+            `Bearer ${localStorage.getItem('crbsToken')}`
+        }
+      });
+
+    const result =
+      await response.json();
+
+    const tbody =
+      document.getElementById('usersBody');
+
+    if (!tbody) return;
+
+    tbody.innerHTML = '';
+
+    result.data.forEach(user => {
+
+      const statusClass =
+        user.isActive ? 'ok' : 'inactive';
+
+      tbody.innerHTML += `
+        <tr class="user-row" data-user-id="${user.userID}">
+          <td><strong>${user.name}</strong></td>
+          <td>${user.email}</td>
+          <td><span class="badge">${user.role}</span></td>
+          <td>${user.department || '-'}</td>
+          <td><span class="badge ${statusClass}">${user.isActive ? 'Active' : 'Disabled'}</span></td>
+          <td>
+            <button class="action-btn edit-user-btn" data-id="${user.userID}">Edit</button>
+            <button class="maintenance-btn toggle-user-btn" data-id="${user.userID}" data-active="${user.isActive}">
+              ${user.isActive ? 'Disable' : 'Enable'}
+            </button>
+          </td>
+        </tr>
+      `;
+
+    });
+
+    bindUserButtons();
+
+  } catch (err) {
+
+    console.error(err);
+
+  }
+
+}
+
+function bindUserButtons() {
+
+  document.querySelectorAll('.edit-user-btn')
+    .forEach(btn => {
+      btn.addEventListener('click', () => {
+        editUser(btn.dataset.id);
+      });
+    });
+
+  document.querySelectorAll('.toggle-user-btn')
+    .forEach(btn => {
+      btn.addEventListener('click', () => {
+        toggleUser(btn.dataset.id, btn.dataset.active === 'true');
+      });
+    });
+
+}
+
+async function editUser(userId) {
+
+  try {
+
+    const response =
+      await fetch(`/api/admin/users/${userId}`, {
+        headers: {
+          Authorization:
+            `Bearer ${localStorage.getItem('crbsToken')}`
+        }
+      });
+
+    const result =
+      await response.json();
+
+    if (!result.success) {
+      alert(result.message);
+      return;
+    }
+
+    const user = result.data;
+
+    document.getElementById('editingUserID').value = user.userID;
+    document.getElementById('userName').value = user.name;
+    document.getElementById('userEmail').value = user.email;
+    document.getElementById('userRole').value = user.role;
+    document.getElementById('userDepartment').value = user.department || '';
+    document.getElementById('userCampusId').value = user.campusId || '';
+    document.getElementById('userIsActive').checked = user.isActive;
+
+    openUserPanel('Edit User');
+
+  } catch (err) {
+
+    console.error(err);
+    alert('Failed to load user details.');
+
+  }
+
+}
+
+function openUserPanel(title) {
+
+  const panel =
+    document.getElementById('userPanel');
+
+  document.getElementById('userPanelTitle').textContent = title;
+
+  panel.classList.add('open');
+  document.body.style.overflow = 'hidden';
+
+}
+
+function closeUserPanel() {
+
+  document.getElementById('userPanel').classList.remove('open');
+  document.body.style.overflow = '';
+
+}
+
+async function saveUser() {
+
+  const userId =
+    document.getElementById('editingUserID').value;
+
+  const data = {
+    name: document.getElementById('userName').value.trim(),
+    email: document.getElementById('userEmail').value.trim(),
+    role: document.getElementById('userRole').value,
+    department: document.getElementById('userDepartment').value.trim() || null,
+    campusId: document.getElementById('userCampusId').value.trim() || null,
+    isActive: document.getElementById('userIsActive').checked,
+  };
+
+  try {
+
+    const response =
+      await fetch(`/api/admin/users/${userId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization:
+            `Bearer ${localStorage.getItem('crbsToken')}`
+        },
+        body: JSON.stringify(data)
+      });
+
+    const result =
+      await response.json();
+
+    const form =
+      document.getElementById('userForm');
+
+    const message =
+      form.querySelector('.form-message');
+
+    if (!result.success) {
+
+      message.textContent =
+        result.errors?.join(', ') || result.message;
+      message.style.color = 'var(--red)';
+      return;
+
+    }
+
+    message.textContent = 'User updated successfully.';
+    message.style.color = 'var(--green)';
+
+    window.setTimeout(() => {
+      closeUserPanel();
+      loadUsers();
+    }, 500);
+
+  } catch (err) {
+
+    console.error(err);
+    alert('Failed to save user.');
+
+  }
+
+}
+
+async function toggleUser(userId, isCurrentlyActive) {
+
+  const action =
+    isCurrentlyActive ? 'disable' : 'enable';
+
+  if (!confirm(`Are you sure you want to ${action} this user?`)) {
+    return;
+  }
+
+  try {
+
+    const response =
+      await fetch(`/api/admin/users/${userId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization:
+            `Bearer ${localStorage.getItem('crbsToken')}`
+        },
+        body: JSON.stringify({
+          isActive: !isCurrentlyActive
+        })
+      });
+
+    const result =
+      await response.json();
+
+    alert(result.message);
+
+    loadUsers();
+
+  } catch (err) {
+
+    console.error(err);
+    alert('Failed to update user status.');
 
   }
 
@@ -2779,5 +3019,20 @@ document.addEventListener("DOMContentLoaded", () => {
     loadPolicyLogs();
     loadPendingApprovals();
     loadMyBookings();
+    loadUsers();
+
+    // User panel close handlers
+    document.querySelectorAll('#userPanel .close-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        closeUserPanel();
+      });
+    });
+
+    document.getElementById('userPanel')?.addEventListener('click', (e) => {
+      if (e.target === e.currentTarget) {
+        closeUserPanel();
+      }
+    });
 
 });

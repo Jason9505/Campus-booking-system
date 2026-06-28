@@ -546,6 +546,11 @@ td {
   color: var(--amber-600);
 }
 
+.inactive {
+  background: #fde8e8;
+  color: #b91c1c;
+}
+
 .tabs {
   display: flex;
   flex-wrap: wrap;
