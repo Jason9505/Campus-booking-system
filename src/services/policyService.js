@@ -15,7 +15,7 @@ const policyService = {
 
     },
 
-    async updatePolicy(data) {
+    async updatePolicy(data, changedBy) {
 
         await db.query(
             `
@@ -42,7 +42,7 @@ const policyService = {
         await db.insert(
             "policy_logs",
             {
-                changedBy: data.changedBy || 1,
+                changedBy,
                 description: "Booking policy updated."
             }
         );

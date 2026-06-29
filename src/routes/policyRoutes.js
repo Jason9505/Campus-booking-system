@@ -8,6 +8,9 @@ require("../controllers/policyController");
 const authMiddleware =
 require("../middlewares/authMiddleware");
 
+const roleMiddleware =
+require("../middlewares/roleMiddleware");
+
 router.get(
     "/",
     authMiddleware,
@@ -17,6 +20,7 @@ router.get(
 router.put(
     "/",
     authMiddleware,
+    roleMiddleware("Admin"),
     policyController.update
 );
 

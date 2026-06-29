@@ -21,6 +21,11 @@ async function seed() {
       ['System Admin', 'admin@mmu.edu.my', hash, 'Admin', 'Administration']
     );
 
+    await connection.query(
+      `INSERT IGNORE INTO bookingpolicy (policyID, maxAdvanceDays, minimumNotice, maximumDuration, cancellationDeadline)
+       VALUES (1, 10, '20 hours', '13 hours', '12 hours before booking')`
+    );
+
     console.log('Seed completed successfully.');
   } catch (error) {
     console.error('Seed failed:', error.message);

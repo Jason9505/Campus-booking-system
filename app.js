@@ -2728,8 +2728,9 @@ async function loadPolicy() {
 
         if (!result.success || !result.data) {
 
-            console.error(result);
-
+            console.error("No policy found:", result);
+            const msg = document.querySelector('[data-form="policy"] .form-message');
+            if(msg) msg.textContent = "No policy found. Please configure and save.";
             return;
 
         }
@@ -2816,7 +2817,13 @@ if(policyForm){
       const result =
       await response.json();
 
-      alert(result.message);
+      if(response.ok){
+        alert(result.message);
+        loadPolicy();
+        loadPolicyLogs();
+      } else {
+        alert("Error: " + (result.message || "Unable to save policy"));
+      }
     
   });
 }

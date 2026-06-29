@@ -10,6 +10,7 @@ const swaggerSpec = require('./docs/swagger');
 const routes = require('./routes');
 const errorHandler = require('./middlewares/errorHandler');
 const notFoundMiddleware = require('./middlewares/notFoundMiddleware');
+const taskScheduler = require('./jobs/taskScheduler');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -51,6 +52,7 @@ const start = async () => {
     app.listen(PORT, () => {
       console.log(`Server running on http://localhost:${PORT}`);
       console.log(`Swagger docs at http://localhost:${PORT}/api/docs`);
+      taskScheduler.start();
     });
   } catch (error) {
     console.error('Unable to start server:', error);

@@ -41,7 +41,7 @@ CREATE TABLE IF NOT EXISTS blacklisted_tokens (
   INDEX idx_tokenHash (tokenHash)
 );
 
-CREATE TABLE resources (
+CREATE TABLE IF NOT EXISTS resources (
   resourceID INT PRIMARY KEY AUTO_INCREMENT,
   name VARCHAR(255) NOT NULL,
   type VARCHAR(50) NOT NULL,
@@ -50,4 +50,20 @@ CREATE TABLE resources (
   status ENUM('Available','Maintenance','Inactive')
     DEFAULT 'Available',
   createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS bookingpolicy (
+  policyID INT PRIMARY KEY AUTO_INCREMENT,
+  maxAdvanceDays INT NOT NULL,
+  minimumNotice VARCHAR(50) NOT NULL,
+  maximumDuration VARCHAR(50) NOT NULL,
+  cancellationDeadline VARCHAR(100) NOT NULL,
+  updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS policy_logs (
+  logID INT PRIMARY KEY AUTO_INCREMENT,
+  changedBy INT,
+  description VARCHAR(255),
+  changedAt DATETIME DEFAULT CURRENT_TIMESTAMP
 );

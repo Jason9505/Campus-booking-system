@@ -52,7 +52,7 @@ const policyController = {
 
         try{
 
-            await policyService.updatePolicy(req.body);
+            await policyService.updatePolicy(req.body, req.user.id);
 
             res.json({
 

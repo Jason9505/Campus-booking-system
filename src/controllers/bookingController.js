@@ -1,6 +1,9 @@
 const bookingService =
   require('../services/bookingService');
 
+const notificationService =
+  require('../services/notificationService');
+
 const bookingController = {
 
   async create(req, res, next) {
@@ -71,6 +74,9 @@ const bookingController = {
 
       await bookingService
         .approveBooking(req.params.id);
+
+      await notificationService
+        .notify(req.params.id, 'confirmation');
 
       res.json({
         success: true,
