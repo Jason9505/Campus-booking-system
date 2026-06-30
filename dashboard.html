@@ -368,7 +368,10 @@
             </div>
           </div>
           <section class="panel">
-            <h2>Registered Users</h2>
+            <div class="panel-header-row">
+              <h2>Registered Users</h2>
+              <button class="primary-btn compact" type="button" id="addUserBtn">Add User</button>
+            </div>
             <div class="table-wrap">
               <table>
                 <thead>
@@ -399,6 +402,7 @@
       <input type="hidden" id="editingUserID" />
       <label>Name<input id="userName" required /></label>
       <label>Email<input id="userEmail" type="email" required /></label>
+      <label id="userPasswordLabel">Password<input id="userPassword" type="password" minlength="8" /></label>
       <label>Role
         <select id="userRole" required>
           <option value="Student">Student</option>

@@ -28,6 +28,25 @@ async function migrate() {
       await connection.query('ALTER TABLE users ADD COLUMN campusId VARCHAR(50) AFTER department');
     }
 
+    // Add archived_bookings table if it doesn't exist (backward compatibility)
+    const [tables] = await connection.query("SHOW TABLES LIKE 'archived_bookings'");
+    if (tables.length === 0) {
+      await connection.query(`
+        CREATE TABLE archived_bookings (
+          archiveID INT PRIMARY KEY AUTO_INCREMENT,
+          originalBookingID INT,
+          userID INT,
+          userName VARCHAR(255),
+          userEmail VARCHAR(255),
+          resourceName VARCHAR(255),
+          startDateTime DATETIME,
+          endDateTime DATETIME,
+          originalStatus VARCHAR(50),
+          archivedAt DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+    }
+
     console.log('Migration completed successfully.');
   } catch (error) {
     console.error('Migration failed:', error.message);

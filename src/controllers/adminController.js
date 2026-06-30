@@ -1,4 +1,5 @@
 const userService = require('../services/userService');
+const emailService = require('../services/emailService');
 
 const adminController = {
   async listUsers(req, res, next) {
@@ -54,6 +55,37 @@ const adminController = {
         success: true,
         message: result.message,
         data: null,
+        errors: [],
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  async createUser(req, res, next) {
+    try {
+      const { name, email, password, role, department, campusId, isActive } = req.body;
+
+      const user = await userService.createUser({
+        name, email, password, role, department, campusId, isActive,
+      });
+
+      const html = await emailService.renderTemplate('welcome', {
+        userName: user.name,
+        email: user.email,
+        loginUrl: `${req.protocol}://${req.get('host')}/login.html`,
+      });
+
+      await emailService.sendMail({
+        to: user.email,
+        subject: 'Welcome to Campus Resource Booking System',
+        html,
+      });
+
+      res.status(201).json({
+        success: true,
+        message: 'User created successfully. Welcome email sent.',
+        data: user,
         errors: [],
       });
     } catch (error) {

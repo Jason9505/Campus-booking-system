@@ -67,3 +67,16 @@ CREATE TABLE IF NOT EXISTS policy_logs (
   description VARCHAR(255),
   changedAt DATETIME DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE IF NOT EXISTS archived_bookings (
+  archiveID INT PRIMARY KEY AUTO_INCREMENT,
+  originalBookingID INT,
+  userID INT,
+  userName VARCHAR(255),
+  userEmail VARCHAR(255),
+  resourceName VARCHAR(255),
+  startDateTime DATETIME,
+  endDateTime DATETIME,
+  originalStatus VARCHAR(50),
+  archivedAt DATETIME DEFAULT CURRENT_TIMESTAMP
+);

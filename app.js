@@ -1447,9 +1447,7 @@ async function loadUsers() {
           <td><span class="badge ${statusClass}">${user.isActive ? 'Active' : 'Disabled'}</span></td>
           <td>
             <button class="action-btn edit-user-btn" data-id="${user.userID}">Edit</button>
-            <button class="maintenance-btn toggle-user-btn" data-id="${user.userID}" data-active="${user.isActive}">
-              ${user.isActive ? 'Disable' : 'Enable'}
-            </button>
+            <button class="maintenance-btn delete-user-btn" data-id="${user.userID}">Delete</button>
           </td>
         </tr>
       `;
@@ -1475,10 +1473,10 @@ function bindUserButtons() {
       });
     });
 
-  document.querySelectorAll('.toggle-user-btn')
+  document.querySelectorAll('.delete-user-btn')
     .forEach(btn => {
       btn.addEventListener('click', () => {
-        toggleUser(btn.dataset.id, btn.dataset.active === 'true');
+        deleteUser(btn.dataset.id);
       });
     });
 
@@ -1512,6 +1510,7 @@ async function editUser(userId) {
     document.getElementById('userRole').value = user.role;
     document.getElementById('userDepartment').value = user.department || '';
     document.getElementById('userCampusId').value = user.campusId || '';
+    document.getElementById('userPassword').value = '';
     document.getElementById('userIsActive').checked = user.isActive;
 
     openUserPanel('Edit User');
@@ -1531,6 +1530,18 @@ function openUserPanel(title) {
     document.getElementById('userPanel');
 
   document.getElementById('userPanelTitle').textContent = title;
+
+  if (title === 'Create User') {
+    document.getElementById('editingUserID').value = '';
+    document.getElementById('userForm').reset();
+    document.getElementById('userPassword').required = true;
+    document.getElementById('userPasswordLabel').style.display = '';
+    const msg = document.getElementById('userForm').querySelector('.form-message');
+    if (msg) msg.textContent = '';
+  } else {
+    document.getElementById('userPassword').required = false;
+    document.getElementById('userPasswordLabel').style.display = 'none';
+  }
 
   panel.classList.add('open');
   document.body.style.overflow = 'hidden';
@@ -1558,11 +1569,20 @@ async function saveUser() {
     isActive: document.getElementById('userIsActive').checked,
   };
 
+  const password =
+    document.getElementById('userPassword').value;
+
+  if (password) {
+    data.password = password;
+  }
+
+  const isCreate = !userId;
+
   try {
 
     const response =
-      await fetch(`/api/admin/users/${userId}`, {
-        method: 'PUT',
+      await fetch(isCreate ? '/api/admin/users' : `/api/admin/users/${userId}`, {
+        method: isCreate ? 'POST' : 'PUT',
         headers: {
           'Content-Type': 'application/json',
           Authorization:
@@ -1589,7 +1609,7 @@ async function saveUser() {
 
     }
 
-    message.textContent = 'User updated successfully.';
+    message.textContent = isCreate ? 'User created successfully.' : 'User updated successfully.';
     message.style.color = 'var(--green)';
 
     window.setTimeout(() => {
@@ -1606,12 +1626,9 @@ async function saveUser() {
 
 }
 
-async function toggleUser(userId, isCurrentlyActive) {
+async function deleteUser(userId) {
 
-  const action =
-    isCurrentlyActive ? 'disable' : 'enable';
-
-  if (!confirm(`Are you sure you want to ${action} this user?`)) {
+  if (!confirm('Are you sure you want to permanently delete this user? This action cannot be undone.')) {
     return;
   }
 
@@ -1619,15 +1636,11 @@ async function toggleUser(userId, isCurrentlyActive) {
 
     const response =
       await fetch(`/api/admin/users/${userId}`, {
-        method: 'PUT',
+        method: 'DELETE',
         headers: {
-          'Content-Type': 'application/json',
           Authorization:
             `Bearer ${localStorage.getItem('crbsToken')}`
-        },
-        body: JSON.stringify({
-          isActive: !isCurrentlyActive
-        })
+        }
       });
 
     const result =
@@ -1640,7 +1653,7 @@ async function toggleUser(userId, isCurrentlyActive) {
   } catch (err) {
 
     console.error(err);
-    alert('Failed to update user status.');
+    alert('Failed to delete user.');
 
   }
 
@@ -3040,6 +3053,10 @@ document.addEventListener("DOMContentLoaded", () => {
       if (e.target === e.currentTarget) {
         closeUserPanel();
       }
+    });
+
+    document.getElementById('addUserBtn')?.addEventListener('click', () => {
+      openUserPanel('Create User');
     });
 
 });

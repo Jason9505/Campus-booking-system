@@ -1,8 +1,36 @@
 const db = require('../db');
+const notificationService = require('./notificationService');
 
 const bookingService = {
 
+  async _checkConflict(resourceID, startDateTime, endDateTime) {
+    const conflicts = await db.queryAll(
+      `SELECT bookingID FROM bookings
+       WHERE resourceID = ?
+       AND status IN ('Pending', 'Confirmed')
+       AND startDateTime < ?
+       AND endDateTime > ?`,
+      [resourceID, endDateTime, startDateTime]
+    );
+    return conflicts;
+  },
+
   async createBooking(userID, data) {
+
+    const conflicts = await this._checkConflict(
+      data.resourceID,
+      data.startDateTime,
+      data.endDateTime
+    );
+
+    if (conflicts.length > 0) {
+      for (const c of conflicts) {
+        await notificationService.notify(c.bookingID, 'conflict');
+      }
+      const err = new Error('Resource is already booked for this time slot.');
+      err.statusCode = 409;
+      throw err;
+    }
 
     const bookingID = await db.insert(
       'bookings',
@@ -100,6 +128,14 @@ const bookingService = {
       WHERE bookingID = ?
       `,
       [id]
+    );
+  },
+
+  async getActiveBookingsByUser(userId) {
+    return await db.queryAll(
+      `SELECT bookingID, startDateTime, endDateTime FROM bookings
+       WHERE userID = ? AND status IN ('Pending', 'Confirmed')`,
+      [userId]
     );
   },
 
